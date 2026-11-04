@@ -64,7 +64,7 @@ function cleanName(raw: string | undefined): string | null {
     .replace(/\s{2,}/g, " ")
     .replace(/[\s.,:;-]+$/g, "")
     .trim();
-  if (!name || name.length < 2) return null;
+  if (!name || name.length < 2 || !/[A-Za-z]{2,}/.test(name)) return null; // a time or number is not a name
   // MTN sends names in capitals: KOFI MENSAH -> Kofi Mensah
   if (name === name.toUpperCase()) {
     return name.toLowerCase().replace(/\b[a-z]/g, (c) => c.toUpperCase());
@@ -134,6 +134,8 @@ export function parseMomoSms(textRaw: string, sender?: string): ParseResult {
     first(text, [
       new RegExp(`(?:transaction )?fee(?: charged| was| is)?\\s*:?\\s*${CUR}?\\s?${NUM}`, "i"),
       new RegExp(`charges?(?: of)?\\s*:?\\s*${MONEY}`, "i"),
+      // Telecel: "You were charged GHS0.36."
+      new RegExp(`\\b(?:you were |were )?charged\\s+${MONEY}`, "i"),
     ])?.[1]
   );
   const tax = money(

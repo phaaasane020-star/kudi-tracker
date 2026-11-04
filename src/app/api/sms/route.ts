@@ -38,7 +38,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: false, error: "Message too large" }, { status: 413 });
   }
   const { text, sender } = await readBody(request);
-  if (!text) return NextResponse.json({ ok: false, error: "No message text" }, { status: 400 });
+  if (!text) {
+    // Log it anyway, so the person can see their phone did send something.
+    await admin.from("sms_inbox").insert({
+      user_id: settings.user_id,
+      sender,
+      body: "(empty)",
+      status: "error",
+      detail: "Your phone sent a message but the text was empty. In the Shortcut, set the 'text' field to Shortcut Input → Content (or Message).",
+    });
+    await admin.from("sms_settings").update({ last_received_at: new Date().toISOString() }).eq("user_id", settings.user_id);
+    return NextResponse.json({ ok: false, error: "No message text" }, { status: 400 });
+  }
 
   let bookId = settings.book_id as string | null;
   if (bookId) {
@@ -84,7 +95,8 @@ async function readBody(request: NextRequest): Promise<{ text: string; sender: s
   const pick = (...keys: string[]) => {
     for (const k of keys) {
       const v = obj[k];
-      if (typeof v === "string" && v.trim()) return v.trim();
+      const t = asText(v);
+      if (t) return t;
     }
     return null;
   };
@@ -93,4 +105,28 @@ async function readBody(request: NextRequest): Promise<{ text: string; sender: s
     text: (pick("text", "message", "body", "msg", "content", "sms") ?? "").slice(0, 2000),
     sender: pick("from", "sender", "address", "phone", "number"),
   };
+}
+
+/**
+ * iPhone Shortcuts can send the message as plain text, as a list, or as an
+ * object ({ "content": "...", "sender": "..." }) depending on how the field was
+ * filled in. Turn any of those into plain text.
+ */
+function asText(v: unknown): string | null {
+  if (typeof v === "string") return v.trim() || null;
+  if (Array.isArray(v)) {
+    for (const item of v) {
+      const t = asText(item);
+      if (t) return t;
+    }
+    return null;
+  }
+  if (v && typeof v === "object") {
+    const o = v as Record<string, unknown>;
+    for (const k of ["content", "text", "body", "message", "string", "value", "name", "handle", "sender"]) {
+      const t = asText(o[k]);
+      if (t) return t;
+    }
+  }
+  return null;
 }
