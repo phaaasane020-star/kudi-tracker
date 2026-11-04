@@ -110,14 +110,14 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
           title: "Record MoMo payments automatically",
           summary: "Set it up once. After that, every MoMo payment adds itself.",
           steps: [
-            <>Open {go("/settings", "Auto MoMo")} and tap <b>Copy</b> next to your secret link.</>,
+            <>Open {go("/settings", "MoMo Sync")} and tap <b>Copy</b> next to your secret link.</>,
             <>On iPhone, open the <b>Shortcuts</b> app, then <b>Automation</b>, then <b>+</b>, then <b>Message</b>.</>,
             <>Choose <b>Message Contains</b>, type <b>GHS</b>, then choose <b>Run Immediately</b>.</>,
             <>Add the action <b>Get Contents of URL</b> and paste your link. Set Method to <b>POST</b> and Request Body to <b>JSON</b>.</>,
             <>Add a field called <b>text</b> set to the message content, and a field called <b>from</b> set to the sender.</>,
             "Save. Send yourself GH₵1 to test it. It should appear in Kudi within a few seconds.",
           ],
-          tip: "The Auto MoMo page has the same steps for Android phones. Keep your secret link private.",
+          tip: "The MoMo Sync page has the same steps for Android phones. Keep your secret link private.",
         },
         {
           icon: ClipboardPaste,
@@ -125,7 +125,7 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
           summary: "For payments from before you set up automatic recording.",
           steps: [
             "In your phone's Messages app, press and hold the MoMo message, then tap Copy.",
-            <>Open {go("/settings", "Auto MoMo")} and scroll to <b>Record a message by pasting it</b>.</>,
+            <>Open {go("/settings", "MoMo Sync")} and scroll to <b>Record a message by pasting it</b>.</>,
             <>Paste the message into the box and tap <b>Record this message</b>.</>,
             <>Kudi tells you what it recorded and where. Tap <b>See it</b> to open it.</>,
           ],
@@ -136,8 +136,8 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
           summary: "Usually it's in another month or the other notebook.",
           steps: [
             <>Check the month at the top. A message dated last month goes into last month. Tap <b>‹</b> to go back.</>,
-            <>Check <b>Personal</b> and <b>Business</b>. MoMo goes into the one chosen on the Auto MoMo page.</>,
-            <>On {go("/settings", "Auto MoMo")}, look at <b>Messages received</b>. It says if a message was recorded, skipped, or already there.</>,
+            <>Check <b>Personal</b> and <b>Business</b>. MoMo goes into the one chosen on the MoMo Sync page.</>,
+            <>On {go("/settings", "MoMo Sync")}, look at <b>Messages received</b>. It says if a message was recorded, skipped, or already there.</>,
             "Cash deposits are not counted as money in, and cash withdrawals only count the fee. You add what you spend that cash on yourself.",
           ],
         },
@@ -200,7 +200,7 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
           steps: [
             <>One record: open {go("/transactions", "Records")}, tap the record, then tap <b>Delete this record</b>.</>,
             <>A category: open {go("/categories", "Budgets")} and tap <b>Delete</b> next to it. Its records stay, just without a category.</>,
-            <>A MoMo message: open {go("/settings", "Auto MoMo")} and tap <b>Delete</b> next to it, or <b>Clear all</b>.</>,
+            <>A MoMo message: open {go("/settings", "MoMo Sync")} and tap <b>Delete</b> next to it, or <b>Clear all</b>.</>,
             <>A whole month, a whole book, or everything: open {go("/account", "Account & data")}.</>,
             <>Every delete button asks twice. Tap once and it turns red and says <b>Tap again</b>. Tap again to delete. If you change your mind, just wait and it goes back.</>,
           ],
@@ -212,7 +212,7 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
           summary: "A few simple habits.",
           steps: [
             "Never tell anyone your password, not even a friend.",
-            "Never share your Auto MoMo secret link.",
+            "Never share your MoMo Sync secret link.",
             <>On a shared phone or computer, tap <b>Sign out</b> when you finish.</>,
             <>If you think someone knows your password, change it from {go("/account", "Account & data")}.</>,
           ],

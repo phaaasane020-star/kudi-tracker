@@ -52,7 +52,7 @@ export default async function AutoMomoPage({ searchParams }: { searchParams: Pro
   const enabled = settings?.enabled ?? true;
 
   return (
-    <AppShell path="/settings" book={book} month={month} categories={categories} title="Auto MoMo" showMonth={false}>
+    <AppShell path="/settings" book={book} month={month} categories={categories} title="MoMo Sync" showMonth={false}>
       <div className="mx-auto max-w-3xl space-y-5">
         <section className="rise rounded-[20px] bg-brown p-5 text-cream sm:p-6">
           <div className="flex items-start justify-between gap-4">

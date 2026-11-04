@@ -26,7 +26,7 @@ export default function PrivacyPage() {
           <b>Your money records:</b> the amounts, dates, categories, notes, payment method and budgets you add, in your Personal and Business books.
         </li>
         <li>
-          <b>MoMo messages you choose to send us:</b> if you set up Auto MoMo or paste a message, we receive the text of that Mobile Money SMS. We use it only
+          <b>MoMo messages you choose to send us:</b> if you set up MoMo Sync or paste a message, we receive the text of that Mobile Money SMS. We use it only
           to create a record for you. We keep the raw message for 30 days so you can check what was recorded, then delete it. The record made from it stays
           until you delete it. When a message holds someone&apos;s phone or account number inside its reference, we leave that number out of the record.
         </li>
@@ -42,7 +42,7 @@ export default function PrivacyPage() {
         <li>We don&apos;t sell or rent your information to anyone.</li>
         <li>We don&apos;t show you adverts, and we don&apos;t use your records for advertising.</li>
         <li>We can&apos;t see, move or touch the money in your MoMo wallet or bank account. Kudi only reads the messages you forward to it.</li>
-        <li>We don&apos;t read your other text messages. Your phone only sends us the messages your Auto MoMo setup is told to send.</li>
+        <li>We don&apos;t read your other text messages. Your phone only sends us the messages your MoMo Sync setup is told to send.</li>
       </ul>
 
       <h2>Who can see your information</h2>
@@ -74,7 +74,7 @@ export default function PrivacyPage() {
       <p>
         Everything is sent over an encrypted connection (HTTPS). Database rules make sure each account can only reach its own records, new accounts must be
         approved before they can use the app, strong passwords are required, and sign-in is locked for 15 minutes after 5 wrong passwords. No system is
-        perfectly secure, so please also keep your password and your Auto MoMo link private.
+        perfectly secure, so please also keep your password and your MoMo Sync link private.
       </p>
 
       <h2>Your choices</h2>
@@ -90,7 +90,7 @@ export default function PrivacyPage() {
           <Link href="/account">Account &amp; data</Link>. Deleting your account removes your records, categories, budgets and MoMo settings for good.
         </li>
         <li>
-          <b>Stop Auto MoMo</b> any time by turning it off on the Auto MoMo page, or by deleting the automation on your phone.
+          <b>Stop MoMo Sync</b> any time by turning it off on the MoMo Sync page, or by deleting the automation on your phone.
         </li>
         <li>
           <b>Ask us</b> what we hold about you, or to delete it, by emailing <a href={`mailto:${LEGAL_CONTACT}`}>{LEGAL_CONTACT}</a>.

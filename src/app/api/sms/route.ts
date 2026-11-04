@@ -37,15 +37,15 @@ export async function POST(request: NextRequest) {
   if (Number(request.headers.get("content-length") ?? 0) > 10_000) {
     return NextResponse.json({ ok: false, error: "Message too large" }, { status: 413 });
   }
-  const { text, sender } = await readBody(request);
+  const { text, sender, raw } = await readBody(request);
   if (!text) {
     // Log it anyway, so the person can see their phone did send something.
     await admin.from("sms_inbox").insert({
       user_id: settings.user_id,
       sender,
-      body: "(empty)",
+      body: raw.trim() ? `What your phone sent: ${raw.slice(0, 400)}` : "What your phone sent: nothing at all",
       status: "error",
-      detail: "Your phone sent a message but the text was empty. In the Shortcut, set the 'text' field to Shortcut Input → Content (or Message).",
+      detail: "The message text was empty. In the Shortcut, the text field needs Message (or Shortcut Input) in its value box.",
     });
     await admin.from("sms_settings").update({ last_received_at: new Date().toISOString() }).eq("user_id", settings.user_id);
     return NextResponse.json({ ok: false, error: "No message text" }, { status: 400 });
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ ok: true, ...outcome });
 }
 
-async function readBody(request: NextRequest): Promise<{ text: string; sender: string | null }> {
+async function readBody(request: NextRequest): Promise<{ text: string; sender: string | null; raw: string }> {
   const type = request.headers.get("content-type") ?? "";
   const raw = await request.text();
   let obj: Record<string, unknown> = {};
@@ -102,6 +102,7 @@ async function readBody(request: NextRequest): Promise<{ text: string; sender: s
   };
 
   return {
+    raw,
     text: (pick("text", "message", "body", "msg", "content", "sms") ?? "").slice(0, 2000),
     sender: pick("from", "sender", "address", "phone", "number"),
   };

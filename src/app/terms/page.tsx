@@ -26,7 +26,7 @@ export default function TermsPage() {
       <ul>
         <li>You must be at least 18 years old to create an account.</li>
         <li>Use a real email address that belongs to you, and a strong password you don&apos;t use anywhere else.</li>
-        <li>Keep your password and your Auto MoMo secret link private. You&apos;re responsible for what happens in your account.</li>
+        <li>Keep your password and your MoMo Sync secret link private. You&apos;re responsible for what happens in your account.</li>
         <li>If you think someone else has used your account, change your password and use “Sign out on all devices” straight away.</li>
       </ul>
 
@@ -37,7 +37,7 @@ export default function TermsPage() {
         <Link href="/account">Account &amp; data</Link>.
       </p>
 
-      <h2>Auto MoMo</h2>
+      <h2>MoMo Sync</h2>
       <ul>
         <li>Only forward Mobile Money messages for wallets that belong to you.</li>
         <li>
@@ -72,7 +72,7 @@ export default function TermsPage() {
       <h2>Limits of responsibility</h2>
       <p>
         As far as the law allows, Paa Asane Technologies is not responsible for losses that come from relying on Kudi&apos;s numbers, from a message being read
-        wrongly, from the app being unavailable, or from someone using your password or Auto MoMo link. Nothing in these terms takes away rights you have under
+        wrongly, from the app being unavailable, or from someone using your password or MoMo Sync link. Nothing in these terms takes away rights you have under
         Ghanaian law that can&apos;t be taken away.
       </p>
 

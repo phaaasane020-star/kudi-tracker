@@ -47,7 +47,7 @@ const STEPS: Step[] = [
   },
   {
     target: "nav-/settings",
-    title: "Auto MoMo",
+    title: "MoMo Sync",
     text: "Set this up once, and your MoMo payments will add themselves. No typing needed.",
   },
   {

@@ -120,7 +120,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
         <section className="panel rise sm:p-5" style={{ ["--i" as string]: 2 }}>
           <h2 className="section-title">Delete received MoMo messages</h2>
           <p className="mt-1 text-[15px] text-muted">
-            Clears the list on the Auto MoMo page ({inInbox} message{inInbox === 1 ? "" : "s"}). Records made from them stay. You can also delete one message at a time there.
+            Clears the list on the MoMo Sync page ({inInbox} message{inInbox === 1 ? "" : "s"}). Records made from them stay. You can also delete one message at a time there.
           </p>
           <form action={clearInbox} className="mt-4">
             <ConfirmButton label="Delete all messages" disabled={!inInbox} />

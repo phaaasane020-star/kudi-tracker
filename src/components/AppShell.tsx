@@ -14,7 +14,7 @@ const NAV: { path: AppPath; label: string; short: string; icon: typeof LayoutDas
   { path: "/", label: "Overview", short: "Home", icon: LayoutDashboard },
   { path: "/transactions", label: "Records", short: "Records", icon: ReceiptText },
   { path: "/categories", label: "Budgets", short: "Budgets", icon: PieChart },
-  { path: "/settings", label: "Auto MoMo", short: "MoMo", icon: Smartphone },
+  { path: "/settings", label: "MoMo Sync", short: "MoMo", icon: Smartphone },
 ];
 const SECURITY = { path: "/security" as AppPath, label: "Security", short: "Security", icon: ShieldCheck };
 const HELP = { path: "/guide" as AppPath, label: "Help", short: "Help", icon: CircleHelp };

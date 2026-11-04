@@ -12,7 +12,7 @@ const VIEWS = [
   { value: "", label: "All" },
   { value: "out", label: "Money out" },
   { value: "in", label: "Money in" },
-  { value: "auto", label: "Auto MoMo" },
+  { value: "auto", label: "MoMo Sync" },
   { value: "cash", label: "Cash" },
   { value: "review", label: "Needs a category" },
 ];

@@ -26,7 +26,7 @@ export default function Footer({ signedIn = true, owner = false, tone = "light" 
                 </Link>
               )}
               <Link href="/settings" className="hover:text-ink">
-                Auto MoMo
+                MoMo Sync
               </Link>
               <Link href="/account" className="hover:text-ink">
                 Account &amp; data

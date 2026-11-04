@@ -28,7 +28,7 @@ const LABEL: Record<string, string> = {
   password_reset_requested: "Asked for a reset link",
   password_changed: "Password changed",
   signout_all: "Signed out everywhere",
-  sms_bad_token: "Wrong Auto MoMo link used",
+  sms_bad_token: "Wrong MoMo Sync link used",
   google_signin: "Signed in with Google",
   member_approved: "You approved someone",
   member_declined: "You declined someone",
@@ -103,7 +103,7 @@ export default async function SecurityPage({ searchParams }: { searchParams: Pro
       fix: "Open People to approve or decline them.",
     },
     { ok: failed === 0, text: failed === 0 ? "No wrong-password attempts this week" : `${failed} wrong-password attempt${failed === 1 ? "" : "s"} this week`, fix: "If these weren’t you, change your password below." },
-    { ok: !recent7.some((x) => x.kind === "sms_bad_token"), text: recent7.some((x) => x.kind === "sms_bad_token") ? "Someone used a wrong Auto MoMo link" : "No one has tried a fake Auto MoMo link", fix: "Make a new link on the Auto MoMo page if you think yours leaked." },
+    { ok: !recent7.some((x) => x.kind === "sms_bad_token"), text: recent7.some((x) => x.kind === "sms_bad_token") ? "Someone used a wrong MoMo Sync link" : "No one has tried a fake MoMo Sync link", fix: "Make a new link on the MoMo Sync page if you think yours leaked." },
   ];
 
   return (
@@ -200,7 +200,7 @@ export default async function SecurityPage({ searchParams }: { searchParams: Pro
                     <div className="flex items-start justify-between gap-3">
                       <span className="min-w-0">
                         <span className={`block text-[15px] font-medium ${BAD.has(x.kind) ? "text-red-dark" : ""}`}>{LABEL[x.kind] ?? x.kind}</span>
-                        <span className="block truncate text-[13px] text-muted">{x.email ?? (x.kind === "sms_bad_token" ? "Auto MoMo link" : "No email")}</span>
+                        <span className="block truncate text-[13px] text-muted">{x.email ?? (x.kind === "sms_bad_token" ? "MoMo Sync link" : "No email")}</span>
                       </span>
                       <span className="shrink-0 text-xs text-muted">{timeAgo(x.created_at)}</span>
                     </div>
@@ -267,7 +267,7 @@ function pageName(path: string | null) {
     "/": "Overview",
     "/transactions": "Records",
     "/categories": "Budgets",
-    "/settings": "Auto MoMo",
+    "/settings": "MoMo Sync",
     "/security": "Security",
     "/login": "Login page",
     "/forgot": "Forgot password",
