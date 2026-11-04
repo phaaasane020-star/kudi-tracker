@@ -8,10 +8,10 @@ export default function Footer({ signedIn = true, owner = false, tone = "light" 
         <div className="flex shrink-0 items-center gap-2.5">
           <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-red text-sm font-bold text-white">₵</span>
           <p className="leading-tight">
-            <span className="block font-semibold">Kudi Tracker</span>
+            <span className="block font-semibold">© {year} Kudi Tracker</span>
             <span className="block text-xs text-muted">
-              © {year}{" "}
-              <a href="https://paatech.vercel.app" target="_blank" rel="noopener noreferrer" className="hover:text-red hover:underline">
+              Powered by{" "}
+              <a href="https://paatech.vercel.app" target="_blank" rel="noopener noreferrer" className="font-medium hover:text-red hover:underline">
                 Paa Asane Technologies
               </a>
             </span>
@@ -31,7 +31,9 @@ export default function Footer({ signedIn = true, owner = false, tone = "light" 
               <Link href="/account" className="hover:text-ink">
                 Account &amp; data
               </Link>
-
+              <Link href="/guide" className="hover:text-ink">
+                How to use Kudi
+              </Link>
             </>
           ) : (
             <>
@@ -43,14 +45,12 @@ export default function Footer({ signedIn = true, owner = false, tone = "light" 
               </Link>
             </>
           )}
-          {signedIn && (
-            <Link href="/guide" className="hover:text-ink">
-              How to use Kudi
-            </Link>
-          )}
-          <a href="https://paatech.vercel.app" target="_blank" rel="noopener noreferrer" className="hover:text-ink">
-            Built by Paa Asane Technologies
-          </a>
+          <Link href="/privacy" className="hover:text-ink">
+            Privacy Policy
+          </Link>
+          <Link href="/terms" className="hover:text-ink">
+            Terms of Use
+          </Link>
         </nav>
       </div>
     </footer>

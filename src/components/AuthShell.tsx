@@ -29,7 +29,7 @@ export default function AuthShell({
             <p className="mt-5 text-lg text-cream/75">{text}</p>
           </div>
           <a href="https://paatech.vercel.app" target="_blank" rel="noopener noreferrer" className="text-sm text-cream/50 hover:text-cream hover:underline">
-            by Paa Asane Technologies
+            Powered by Paa Asane Technologies
           </a>
           <span aria-hidden className="pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full border-[40px] border-red/15" />
         </section>

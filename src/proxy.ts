@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC = ["/login", "/forgot", "/auth", "/api/sms", "/api/visit"];
+const PUBLIC = ["/login", "/forgot", "/auth", "/api/sms", "/api/visit", "/privacy", "/terms"];
 const VISITOR_COOKIE = "kudi_vid";
 
 // Refreshes the Supabase session on every request, keeps signed-out visitors

@@ -84,6 +84,20 @@ body {
     @apply flex items-baseline justify-between border-b border-line/70 bg-wash/70 px-4 py-2.5 text-[13px];
   }
 
+  /* Privacy Policy and Terms of Use: comfortable reading. */
+  .legal h2 {
+    @apply mt-10 mb-3 text-xl font-bold first:mt-0;
+  }
+  .legal p {
+    @apply mb-4 text-[16px] leading-[1.7] text-ink/85;
+  }
+  .legal ul {
+    @apply mb-4 list-disc space-y-2.5 pl-5 text-[16px] leading-[1.7] text-ink/85 marker:text-red;
+  }
+  .legal a {
+    @apply font-semibold text-red underline-offset-2 hover:underline;
+  }
+
   .section-title {
     @apply text-[17px] font-semibold;
   }

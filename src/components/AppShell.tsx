@@ -223,7 +223,7 @@ function Brand({ compact = false }: { compact?: boolean }) {
         <span className="leading-tight">
           <span className="block text-[17px] font-bold">Kudi Tracker</span>
           <a href="https://paatech.vercel.app" target="_blank" rel="noopener noreferrer" className="block text-xs text-muted hover:text-red hover:underline">
-            by Paa Asane Technologies
+            Powered by Paa Asane Technologies
           </a>
         </span>
       )}

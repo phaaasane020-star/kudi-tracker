@@ -115,7 +115,15 @@ export default function LoginScreen({ notice }: { notice?: string }) {
             </form>
             {mode === "signup" && (
               <p className="mt-4 text-[13px] leading-relaxed text-muted">
-                New accounts have to be approved by the owner of this Kudi Tracker before they can be used.
+                New accounts have to be approved by the owner of this Kudi Tracker before they can be used. By continuing, you agree to the 
+                <Link href="/terms" className="font-semibold text-red hover:underline">
+                  Terms of Use
+                </Link> 
+                and 
+                <Link href="/privacy" className="font-semibold text-red hover:underline">
+                  Privacy Policy
+                </Link>
+                .
               </p>
             )}
     </AuthShell>
