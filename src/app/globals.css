@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "@fontsource-variable/bricolage-grotesque";
+@import "@fontsource-variable/ibm-plex-sans";
 
 /* Relax and Bite palette, white theme */
 @theme {
@@ -16,7 +16,7 @@
   --color-paper: #ffffff;
   --color-wash: #fffaf3;
 
-  --font-sans: "Bricolage Grotesque Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "IBM Plex Sans Variable", "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 html,
@@ -27,12 +27,12 @@ body {
 }
 
 body {
-  font-variation-settings: "opsz" 14;
+  font-feature-settings: "tnum" 0;
 }
 
 .display {
-  font-variation-settings: "opsz" 96, "wdth" 85;
-  letter-spacing: -0.02em;
+  font-weight: 700;
+  letter-spacing: -0.025em;
 }
 
 .tabular {
