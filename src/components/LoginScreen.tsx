@@ -1,8 +1,8 @@
 "use client";
 
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, X } from "lucide-react";
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { signIn, signInWithGoogle, signUp, type AuthState } from "@/app/auth-actions";
 import PasswordMeter from "@/components/PasswordMeter";
@@ -26,7 +26,15 @@ export default function LoginScreen({ notice }: { notice?: string }) {
   const [upState, upAction, upPending] = useActionState(signUp, initial);
   const state = mode === "signin" ? inState : upState;
   const pending = inPending || upPending;
-  const banner = notice ? NOTICES[notice] : "";
+  const [banner, setBanner] = useState(notice ? NOTICES[notice] ?? "" : "");
+
+  // Show a notice once, then take it out of the address bar so a refresh doesn't bring it back.
+  useEffect(() => {
+    if (!notice) return;
+    const url = new URL(window.location.href);
+    url.searchParams.delete("notice");
+    window.history.replaceState(null, "", url.pathname + url.search);
+  }, [notice]);
 
   return (
     <AuthShell heading="Every cedi, accounted for." text="MoMo payments record themselves from your SMS. Cash takes two taps.">
@@ -45,7 +53,14 @@ export default function LoginScreen({ notice }: { notice?: string }) {
               </p>
             </div>
 
-            {banner && <p className="mt-5 rounded-xl border-l-[3px] border-orange bg-cream px-3.5 py-2.5 text-sm">{banner}</p>}
+            {banner && (
+              <div className="fade-in mt-5 flex items-start gap-2 rounded-xl border-l-[3px] border-orange bg-cream py-2.5 pl-3.5 pr-2 text-sm" role="status">
+                <p className="flex-1">{banner}</p>
+                <button type="button" onClick={() => setBanner("")} className="press -my-1 rounded-lg p-1.5 text-muted hover:text-ink" aria-label="Close message">
+                  <X size={16} />
+                </button>
+              </div>
+            )}
 
             <form key={mode} action={mode === "signin" ? inAction : upAction} className="rise mt-6 space-y-4" style={{ ["--i" as string]: 2 }}>
               <label className="block">
@@ -130,10 +145,23 @@ export default function LoginScreen({ notice }: { notice?: string }) {
   );
 }
 
+/**
+ * Styled to Google's sign-in button guidelines (light theme): white, grey outline, dark grey text.
+ * Google's official "G" mark appears once you add their file to public/google-g.svg
+ * (download it from Google's "Sign in with Google" branding guidelines page).
+ */
 function GoogleButton() {
   const { pending } = useFormStatus();
+  const [logo, setLogo] = useState(true);
   return (
-    <button className="btn-soft w-full py-3 text-[15px]" disabled={pending}>
+    <button
+      className="press relative flex w-full items-center justify-center gap-3 rounded-full border border-[#747775] bg-white px-4 py-3 text-[15px] font-medium text-[#1F1F1F] transition-colors hover:bg-[#F8FAFF] disabled:opacity-60"
+      disabled={pending}
+    >
+      {logo && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src="/google-g.svg" alt="" width={20} height={20} className="h-5 w-5" onError={() => setLogo(false)} />
+      )}
       {pending ? "Opening Google…" : "Continue with Google"}
     </button>
   );
