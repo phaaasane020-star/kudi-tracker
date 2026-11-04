@@ -1,0 +1,116 @@
+@import "tailwindcss";
+@import "@fontsource-variable/bricolage-grotesque";
+
+/* Relax and Bite palette, white theme */
+@theme {
+  --color-red: #ef4444;
+  --color-red-dark: #dc2626;
+  --color-green: #166534;
+  --color-orange: #f97316;
+  --color-brown: #3f292b;
+  --color-cream: #fff3e0;
+
+  --color-ink: #3f292b;
+  --color-muted: #85706f;
+  --color-line: #f1e6da;
+  --color-paper: #ffffff;
+  --color-wash: #fffaf3;
+
+  --font-sans: "Bricolage Grotesque Variable", ui-sans-serif, system-ui, sans-serif;
+}
+
+html,
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-variation-settings: "opsz" 14;
+}
+
+.display {
+  font-variation-settings: "opsz" 96, "wdth" 85;
+  letter-spacing: -0.02em;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-orange);
+  outline-offset: 2px;
+}
+
+@layer components {
+  .field {
+    @apply w-full rounded-[10px] border border-line bg-white px-3.5 py-3 text-[15px] text-ink outline-none transition placeholder:text-muted/70 focus:border-brown/40 focus:ring-4 focus:ring-cream;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-red px-4 py-3 text-[15px] font-semibold text-white transition hover:bg-red-dark active:scale-[0.98] disabled:opacity-60;
+  }
+
+  .btn-dark {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-brown px-4 py-3 text-[15px] font-semibold text-cream transition hover:bg-brown/90 active:scale-[0.98] disabled:opacity-60;
+  }
+
+  .btn-soft {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-line bg-white px-3.5 py-2.5 text-sm font-medium text-ink transition hover:bg-wash active:scale-[0.98] disabled:opacity-50;
+  }
+
+  .chip {
+    @apply inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-line bg-white px-3 py-1.5 text-sm text-ink transition;
+  }
+
+  .chip-on {
+    @apply border-brown bg-brown text-cream;
+  }
+
+  .panel {
+    @apply bg-white max-sm:border-t max-sm:border-line max-sm:pt-5 sm:rounded-2xl sm:border sm:border-line;
+  }
+
+  .section-title {
+    @apply text-[17px] font-semibold;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .sheet-in {
+    animation: sheet-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .fade-in {
+    animation: fade-in 180ms ease-out;
+  }
+}
+
+@keyframes sheet-in {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}

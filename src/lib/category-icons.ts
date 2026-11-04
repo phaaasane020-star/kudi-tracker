@@ -1,0 +1,57 @@
+import {
+  AppWindow,
+  ArrowDownLeft,
+  Banknote,
+  Briefcase,
+  Bus,
+  Circle,
+  Clapperboard,
+  Gift,
+  Globe,
+  GraduationCap,
+  Hammer,
+  HandHeart,
+  HeartPulse,
+  House,
+  Landmark,
+  Laptop,
+  Megaphone,
+  Percent,
+  Shirt,
+  UtensilsCrossed,
+  Users,
+  Wallet,
+  Wifi,
+  Wrench,
+  type LucideIcon,
+} from "lucide-react";
+
+const RULES: [RegExp, LucideIcon][] = [
+  [/food|grocer|chop/i, UtensilsCrossed],
+  [/transport|fuel|travel/i, Bus],
+  [/airtime|data|internet/i, Wifi],
+  [/rent|utilit|house/i, House],
+  [/school|book|fees/i, GraduationCap],
+  [/cloth|fashion/i, Shirt],
+  [/health|medic/i, HeartPulse],
+  [/family/i, Users],
+  [/church|giving|tithe/i, HandHeart],
+  [/entertain|fun/i, Clapperboard],
+  [/charge|fee/i, Percent],
+  [/hosting|domain/i, Globe],
+  [/software|subscript/i, AppWindow],
+  [/equipment|laptop/i, Laptop],
+  [/marketing|advert/i, Megaphone],
+  [/contractor/i, Hammer],
+  [/tax|registration/i, Landmark],
+  [/allowance|salary|wage/i, Wallet],
+  [/gift/i, Gift],
+  [/client|project/i, Briefcase],
+  [/maintenance|retainer/i, Wrench],
+  [/income/i, ArrowDownLeft],
+];
+
+export function categoryIcon(name: string | undefined, fallbackType?: "expense" | "income"): LucideIcon {
+  if (name) for (const [re, icon] of RULES) if (re.test(name)) return icon;
+  return fallbackType === "income" ? ArrowDownLeft : name ? Circle : Banknote;
+}
