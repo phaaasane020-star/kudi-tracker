@@ -22,22 +22,22 @@ const DISPOSABLE = new Set([
 export async function checkSignupEmail(email: string): Promise<string | null> {
   const e = email.trim().toLowerCase();
   if (!/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/.test(e) || e.length > 200 || e.includes("..")) {
-    return "Enter a real email address, like name@gmail.com.";
+    return "Use a real email address.";
   }
   const domain = e.split("@")[1];
   if (DISPOSABLE.has(domain) || [...DISPOSABLE].some((d) => domain.endsWith("." + d))) {
-    return "Throwaway email addresses can't be used. Use your everyday email.";
+    return "Use a real email address.";
   }
   try {
     const mx = await Promise.race([
       resolveMx(domain),
       new Promise<never>((_, reject) => setTimeout(() => reject(new Error("timeout")), 3000)),
     ]);
-    if (!mx || mx.length === 0) return `${domain} doesn't receive email. Check the spelling.`;
+    if (!mx || mx.length === 0) return "Check your email spelling.";
   } catch (err) {
     const code = (err as NodeJS.ErrnoException).code;
     if (code === "ENOTFOUND" || code === "ENODATA" || code === "NXDOMAIN") {
-      return `${domain} doesn't receive email. Check the spelling (for example gmail.com, not gmial.com).`;
+      return "Check your email spelling.";
     }
     // DNS was slow or unreachable: don't block a real person; the confirmation email still has to be opened.
   }

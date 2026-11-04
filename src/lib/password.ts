@@ -15,12 +15,12 @@ export function passwordChecks(password: string, email = ""): PasswordCheck[] {
   const lower = password.toLowerCase();
   const name = email.split("@")[0]?.toLowerCase() ?? "";
   return [
-    { label: "At least 10 characters", ok: password.length >= 10 },
-    { label: "A capital and a small letter", ok: /[A-Z]/.test(password) && /[a-z]/.test(password) },
+    { label: "10+ characters", ok: password.length >= 10 },
+    { label: "A–Z and a–z", ok: /[A-Z]/.test(password) && /[a-z]/.test(password) },
     { label: "A number", ok: /\d/.test(password) },
-    { label: "A symbol, like ! @ # or ?", ok: /[^A-Za-z0-9]/.test(password) },
+    { label: "A symbol (!@#?)", ok: /[^A-Za-z0-9]/.test(password) },
     {
-      label: "Not a common password or your email",
+      label: "Not easy to guess",
       ok:
         password.length > 0 &&
         !COMMON.some((w) => lower.replace(/[^a-z0-9]/g, "").includes(w) && lower.length < w.length + 6) &&
