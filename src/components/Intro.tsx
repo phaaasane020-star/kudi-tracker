@@ -1,47 +1,87 @@
 "use client";
 
 import { ArrowRight, Bus, Smartphone, UtensilsCrossed, Wifi } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { INTRO_FLAG } from "@/lib/intro";
 
-const KEY = "kudi-intro-seen-v1";
+/**
+ * The opening animation. Plays every time the app is opened: on a fresh launch,
+ * a new tab, or coming back after the app has been in the background a while.
+ * A tiny script in the page head hides it straight away for in-app reloads,
+ * so it never flashes.
+ */
+const AWAY_MS = 10 * 60_000; // back after 10 minutes away counts as opening the app again
+const SLIDE_MS = 3600;
 
-/** First-visit welcome: a short splash, then three swipeable slides. Shown once per device. */
 export default function Intro() {
-  const [stage, setStage] = useState<"hidden" | "splash" | "slides">("hidden");
+  const [stage, setStage] = useState<"splash" | "slides" | "hidden">("splash");
   const [i, setI] = useState(0);
   const [dir, setDir] = useState<1 | -1>(1);
+  const [paused, setPaused] = useState(false);
   const touch = useRef<number | null>(null);
 
-  useEffect(() => {
-    let seen = false;
+  const finish = useCallback(() => {
     try {
-      seen = localStorage.getItem(KEY) === "1";
-    } catch {
-      /* private mode: show it */
-    }
-    if (seen) return;
-    setStage("splash");
-    const t = setTimeout(() => setStage("slides"), 1500);
-    return () => clearTimeout(t);
-  }, []);
-
-  useEffect(() => {
-    if (stage === "hidden") return;
-    const o = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = o;
-    };
-  }, [stage]);
-
-  const finish = () => {
-    try {
-      localStorage.setItem(KEY, "1");
+      sessionStorage.setItem(INTRO_FLAG, "1");
     } catch {
       /* ignore */
     }
+    document.documentElement.dataset.intro = "done";
     setStage("hidden");
-  };
+  }, []);
+
+  const play = useCallback(() => {
+    document.documentElement.dataset.intro = "playing";
+    setI(0);
+    setDir(1);
+    setStage("splash");
+  }, []);
+
+  // Decide on first load: already played in this session, or play now.
+  useEffect(() => {
+    let played = false;
+    try {
+      played = sessionStorage.getItem(INTRO_FLAG) === "1";
+    } catch {
+      /* private mode: play it */
+    }
+    if (played) setStage("hidden");
+    else play();
+  }, [play]);
+
+  // Coming back to the app after a while plays it again.
+  useEffect(() => {
+    let hiddenAt = 0;
+    const onVis = () => {
+      if (document.visibilityState === "hidden") hiddenAt = Date.now();
+      else if (hiddenAt && Date.now() - hiddenAt > AWAY_MS) play();
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, [play]);
+
+  // Splash, then the slides move on by themselves like a short video.
+  useEffect(() => {
+    if (stage === "splash") {
+      const t = setTimeout(() => setStage("slides"), 1500);
+      return () => clearTimeout(t);
+    }
+    if (stage === "slides" && !paused) {
+      const t = setTimeout(() => (i >= 2 ? finish() : (setDir(1), setI(i + 1))), SLIDE_MS);
+      return () => clearTimeout(t);
+    }
+  }, [stage, i, paused, finish]);
+
+  useEffect(() => {
+    if (stage === "hidden") return;
+    const html = document.documentElement;
+    const o = html.style.overflow;
+    html.style.overflow = "hidden";
+    return () => {
+      html.style.overflow = o;
+    };
+  }, [stage]);
+
   const go = (n: number) => {
     if (n < 0) return;
     if (n > 2) return finish();
@@ -53,7 +93,7 @@ export default function Intro() {
 
   if (stage === "splash") {
     return (
-      <div className="fixed inset-0 z-[60] flex flex-col items-center justify-center bg-red text-white" aria-label="Kudi Tracker">
+      <div className="intro-overlay fixed inset-0 z-[70] flex flex-col items-center justify-center bg-red text-white" aria-label="Kudi Tracker">
         <div className="relative">
           <span className="splash-ring absolute inset-0 rounded-[28px] border-2 border-white/70" />
           <span className="splash-mark flex h-24 w-24 items-center justify-center rounded-[28px] bg-white text-5xl font-bold text-red shadow-xl">₵</span>
@@ -64,6 +104,9 @@ export default function Intro() {
         <p className="rise mt-1 text-white/80" style={{ ["--i" as string]: 6 }}>
           Know where every cedi goes
         </p>
+        <button onClick={finish} className="safe-bottom absolute bottom-6 text-sm font-medium text-white/80">
+          Skip
+        </button>
       </div>
     );
   }
@@ -89,9 +132,12 @@ export default function Intro() {
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex flex-col bg-white"
+      className="intro-overlay fixed inset-0 z-[70] flex flex-col bg-white"
       role="dialog"
       aria-label="Welcome to Kudi Tracker"
+      onPointerDown={() => setPaused(true)}
+      onPointerUp={() => setPaused(false)}
+      onPointerCancel={() => setPaused(false)}
       onTouchStart={(e) => (touch.current = e.touches[0].clientX)}
       onTouchEnd={(e) => {
         if (touch.current === null) return;
@@ -100,36 +146,37 @@ export default function Intro() {
         touch.current = null;
       }}
     >
-      <div className="safe-top flex items-center justify-between px-5 pt-4">
+      {/* Story-style progress: each bar fills while its slide plays. */}
+      <div className="safe-top flex gap-1.5 px-5 pt-3">
+        {slides.map((_, n) => (
+          <span key={n} className="h-1 flex-1 overflow-hidden rounded-full bg-line">
+            <span
+              key={`${n}-${i}`}
+              className={`block h-full rounded-full bg-red ${n < i ? "w-full" : n === i ? "intro-progress" : "w-0"}`}
+              style={n === i ? { animationDuration: `${SLIDE_MS}ms`, animationPlayState: paused ? "paused" : "running" } : undefined}
+            />
+          </span>
+        ))}
+      </div>
+
+      <div className="flex items-center justify-between px-5 pt-3">
         <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-red text-lg font-bold text-white">₵</span>
-        <button onClick={finish} className="rounded-full px-3 py-1.5 text-[15px] font-medium text-muted hover:bg-wash">
+        <button onClick={finish} className="press rounded-full px-3 py-1.5 text-[15px] font-medium text-muted hover:bg-wash">
           Skip
         </button>
       </div>
 
       <div className="flex flex-1 flex-col justify-center overflow-hidden px-6">
         <div key={i} className={`mx-auto w-full max-w-sm ${dir === 1 ? "slide-in-right" : "slide-in-left"}`}>
-          <div className="mb-10 flex h-64 items-center justify-center rounded-[28px] bg-cream">{s.art}</div>
-          <h2 className="display text-[34px] font-bold leading-[1.05]">{s.title}</h2>
+          <div className="mb-8 flex h-56 items-center justify-center rounded-[28px] bg-cream sm:h-64">{s.art}</div>
+          <h2 className="display text-[32px] font-bold leading-[1.05]">{s.title}</h2>
           <p className="mt-3 text-[17px] leading-relaxed text-muted">{s.body}</p>
         </div>
       </div>
 
-      <div className="safe-bottom mx-auto flex w-full max-w-sm items-center justify-between px-6 pb-8 pt-4">
-        <div className="flex gap-2" role="tablist" aria-label="Slides">
-          {slides.map((_, n) => (
-            <button
-              key={n}
-              onClick={() => go(n)}
-              aria-label={`Slide ${n + 1}`}
-              aria-selected={n === i}
-              role="tab"
-              className={`h-2 rounded-full transition-all duration-300 ${n === i ? "w-7 bg-red" : "w-2 bg-line"}`}
-            />
-          ))}
-        </div>
+      <div className="safe-bottom mx-auto flex w-full max-w-sm items-center justify-end px-6 pb-8 pt-4">
         <button onClick={() => go(i + 1)} className="btn px-6">
-          {i === 2 ? "Get started" : "Next"} <ArrowRight size={18} />
+          {i === 2 ? "Open Kudi" : "Next"} <ArrowRight size={18} />
         </button>
       </div>
     </div>

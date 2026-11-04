@@ -33,7 +33,7 @@ function Form({ bookId, onDone }: { bookId: string; onDone: () => void }) {
   }, [state, onDone]);
 
   return (
-    <form action={action} className="space-y-4">
+    <form action={action} className="space-y-4 pb-[calc(20px+env(safe-area-inset-bottom))]">
       <input type="hidden" name="book_id" value={bookId} />
       <input type="hidden" name="type" value={type} />
       <input type="hidden" name="color" value={color} />

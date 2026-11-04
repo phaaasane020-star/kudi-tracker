@@ -106,7 +106,7 @@ export default function TransactionList({
                   close();
                 });
               }}
-              className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-medium text-red-dark hover:bg-red/5"
+              className="press mb-[calc(12px+env(safe-area-inset-bottom))] mt-1 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-medium text-red-dark hover:bg-red/5"
             >
               <Trash2 size={16} /> {deleting ? "Deleting…" : "Delete this record"}
             </button>

@@ -1,5 +1,6 @@
 import "server-only";
 import { redirect } from "next/navigation";
+import { verifiedUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { currentMonth, isMonth, monthRange } from "@/lib/format";
 import type { Book, Category, Transaction } from "@/lib/types";
@@ -12,9 +13,7 @@ export type PageParams = { book?: string; month?: string };
  */
 export async function loadContext(params: PageParams) {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await verifiedUser(supabase);
   if (!user) redirect("/login");
 
   let { data: books } = await supabase.from("books").select("id,name,kind,currency").order("kind", { ascending: false });

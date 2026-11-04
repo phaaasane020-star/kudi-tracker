@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 import { signIn, signUp, type AuthState } from "@/app/auth-actions";
 import Footer from "@/components/Footer";
-import Intro from "@/components/Intro";
 
 const initial: AuthState = { ok: false, message: "", stamp: 0 };
 
@@ -24,7 +23,6 @@ export default function LoginScreen({ notice }: { notice?: string }) {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <Intro />
       <main className="grid flex-1 lg:grid-cols-[1.1fr_1fr]">
         <section className="relative hidden flex-col justify-between overflow-hidden bg-brown p-12 text-cream lg:flex">
           <div className="flex items-center gap-2.5">

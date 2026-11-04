@@ -26,9 +26,10 @@ export async function proxy(request: NextRequest, event: NextFetchEvent) {
     }
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Checks the session token's signature locally (fast). It also refreshes an
+  // expired session, which is why it must run on every request.
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const user = claimsData?.claims?.sub ? { id: claimsData.claims.sub } : null;
 
   const path = request.nextUrl.pathname;
   const isPublic = PUBLIC.some((p) => path === p || path.startsWith(p + "/") || path.startsWith(p + "?"));
