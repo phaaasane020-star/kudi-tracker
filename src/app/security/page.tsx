@@ -4,7 +4,7 @@ import { signOutEverywhere } from "@/app/auth-actions";
 import AppShell from "@/components/AppShell";
 import { loadCategories, loadContext, type PageParams } from "@/lib/data";
 import { timeAgo } from "@/lib/format";
-import { deviceLabel } from "@/lib/security";
+import { deviceLabel, loggingHealth } from "@/lib/security";
 
 type Event = {
   id: number;
@@ -28,11 +28,15 @@ const LABEL: Record<string, string> = {
   password_changed: "Password changed",
   signout_all: "Signed out everywhere",
   sms_bad_token: "Wrong Auto MoMo link used",
+  google_signin: "Signed in with Google",
+  member_approved: "You approved someone",
+  member_declined: "You declined someone",
+  member_removed: "You removed someone's access",
 };
 const BAD = new Set(["signin_failed", "signin_blocked", "sms_bad_token", "signup"]);
 
 export default async function SecurityPage({ searchParams }: { searchParams: Promise<PageParams> }) {
-  const { supabase, book, month } = await loadContext(await searchParams);
+  const { supabase, book, month, access } = await loadContext(await searchParams);
   const categories = await loadCategories(supabase, book.id);
   const { data: owner } = await supabase.rpc("is_owner");
 
@@ -51,7 +55,8 @@ export default async function SecurityPage({ searchParams }: { searchParams: Pro
   since14.setUTCHours(0, 0, 0, 0);
   const since7 = new Date(Date.now() - 7 * 86400_000).toISOString();
 
-  const [{ data: visits }, { data: events }, signupSetting] = await Promise.all([
+  const [health, { data: visits }, { data: events }, signupSetting] = await Promise.all([
+    loggingHealth(),
     supabase
       .from("security_events")
       .select("visitor_id,created_at,path,country,city,user_agent")
@@ -86,14 +91,22 @@ export default async function SecurityPage({ searchParams }: { searchParams: Pro
   const visitsToday = days[days.length - 1].count;
   const visitors7 = new Set(v.filter((x) => x.created_at >= since7).map((x) => x.visitor_id)).size;
   const recent7 = e.filter((x) => x.created_at >= since7);
-  const signins = recent7.filter((x) => x.kind === "signin_success").length;
+  const signins = recent7.filter((x) => x.kind === "signin_success" || x.kind === "google_signin").length;
   const failed = recent7.filter((x) => x.kind === "signin_failed" || x.kind === "signin_blocked").length;
   const strangers = recent7.filter((x) => x.kind === "sms_bad_token" || x.kind === "signup").length;
   const alert = failed > 0 || strangers > 0;
 
   const signupsOff = signupSetting?.disable_signup === true;
   const checks = [
-    { ok: signupsOff, text: signupsOff ? "New accounts are turned off" : "Anyone can still create an account", fix: "Supabase → Authentication → Sign In / Providers → turn off “Allow new users to sign up”." },
+    {
+      ok: access.pending === 0,
+      text: signupsOff
+        ? "New accounts are turned off completely"
+        : access.pending === 0
+          ? "New accounts need your approval, and nobody is waiting"
+          : `${access.pending} new ${access.pending === 1 ? "account is" : "accounts are"} waiting for your approval`,
+      fix: "Open People to approve or decline them.",
+    },
     { ok: failed === 0, text: failed === 0 ? "No wrong-password attempts this week" : `${failed} wrong-password attempt${failed === 1 ? "" : "s"} this week`, fix: "If these weren’t you, change your password below." },
     { ok: !recent7.some((x) => x.kind === "sms_bad_token"), text: recent7.some((x) => x.kind === "sms_bad_token") ? "Someone used a wrong Auto MoMo link" : "No one has tried a fake Auto MoMo link", fix: "Make a new link on the Auto MoMo page if you think yours leaked." },
   ];
@@ -101,6 +114,15 @@ export default async function SecurityPage({ searchParams }: { searchParams: Pro
   return (
     <AppShell path="/security" book={book} month={month} categories={categories} title="Security" showMonth={false}>
       <div className="mx-auto max-w-3xl space-y-6">
+        {!health.ok && (
+          <section className="rise rounded-[20px] border-2 border-red/30 bg-red/5 p-5" role="alert">
+            <h2 className="flex items-center gap-2 text-lg font-semibold text-red-dark">
+              <ShieldAlert size={22} /> Visits and sign-ins aren&apos;t being recorded
+            </h2>
+            <p className="mt-2 text-[15px]">{health.problem}</p>
+            <p className="mt-2 text-sm text-muted">Until this is fixed, the numbers below stay at zero and the wrong-password lockout can&apos;t count attempts.</p>
+          </section>
+        )}
         <section className={`rise rounded-[20px] p-5 sm:p-6 ${alert ? "bg-cream" : "bg-brown text-cream"}`}>
           <div className="flex items-start gap-3">
             {alert ? <ShieldAlert className="mt-0.5 shrink-0 text-orange" size={26} /> : <ShieldCheck className="mt-0.5 shrink-0 text-[#4ade80]" size={26} />}

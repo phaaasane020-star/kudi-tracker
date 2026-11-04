@@ -5,7 +5,7 @@ export default function Footer({ signedIn = true, tone = "light" }: { signedIn?:
   return (
     <footer className={`border-t border-line ${tone === "light" ? "bg-wash" : ""}`}>
       <div className="mx-auto flex max-w-5xl flex-col gap-4 px-4 py-6 text-sm sm:flex-row sm:items-center sm:justify-between lg:px-8">
-        <div className="flex items-center gap-2.5">
+        <div className="flex shrink-0 items-center gap-2.5">
           <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-red text-sm font-bold text-white">₵</span>
           <p className="leading-tight">
             <span className="block font-semibold">Kudi Tracker</span>
@@ -17,7 +17,7 @@ export default function Footer({ signedIn = true, tone = "light" }: { signedIn?:
             </span>
           </p>
         </div>
-        <nav className="flex flex-wrap gap-x-5 gap-y-2 text-muted">
+        <nav className="flex flex-wrap gap-x-5 gap-y-2 text-muted sm:justify-end">
           {signedIn ? (
             <>
               <Link href="/security" className="hover:text-ink">

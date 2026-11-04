@@ -97,9 +97,9 @@ begin
     raise exception 'Not signed in';
   end if;
 
-  -- The first account to open the app becomes its owner (sees the Security page).
-  if to_regclass('public.app_owner') is not null then
-    insert into app_owner (user_id) values (uid) on conflict (id) do nothing;
+  -- Only accounts the owner has approved get books (is_approved is defined further down).
+  if not public.is_approved() then
+    raise exception 'Waiting for the owner to approve this account';
   end if;
 
   if exists (select 1 from books where user_id = uid) then
@@ -263,3 +263,122 @@ create policy "owner reads security log" on public.security_events
 drop policy if exists "owner trims security log" on public.security_events;
 create policy "owner trims security log" on public.security_events
   for delete using (public.is_owner());
+
+
+-- ============ OWNER APPROVAL (added Nov 2026) ============
+-- Anyone can ask for an account, but nobody can use Kudi until the owner
+-- (the first account on this project) approves them on the People page.
+
+create table if not exists public.members (
+  user_id       uuid primary key references auth.users(id) on delete cascade,
+  email         text,
+  status        text not null default 'pending' check (status in ('pending', 'approved', 'declined')),
+  requested_at  timestamptz not null default now(),
+  decided_at    timestamptz
+);
+create index if not exists members_status_idx on public.members (status, requested_at desc);
+
+-- Every new sign-up lands here as "pending". The very first account is approved.
+create or replace function public.handle_new_member()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, auth
+as $$
+begin
+  insert into public.members (user_id, email, status, decided_at)
+  values (
+    new.id,
+    new.email,
+    case when new.id = (select id from auth.users order by created_at asc limit 1) then 'approved' else 'pending' end,
+    case when new.id = (select id from auth.users order by created_at asc limit 1) then now() else null end
+  )
+  on conflict (user_id) do nothing;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created_member on auth.users;
+create trigger on_auth_user_created_member
+  after insert on auth.users
+  for each row execute function public.handle_new_member();
+
+-- Accounts that already exist: the owner is approved, anyone else waits.
+insert into public.members (user_id, email, status, decided_at)
+select u.id, u.email,
+       case when u.id = (select id from auth.users order by created_at asc limit 1) then 'approved' else 'pending' end,
+       now()
+from auth.users u
+on conflict (user_id) do nothing;
+update public.members set status = 'approved', decided_at = coalesce(decided_at, now())
+where user_id = (select id from auth.users order by created_at asc limit 1);
+
+create or replace function public.is_approved()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (select 1 from public.members where user_id = auth.uid() and status = 'approved');
+$$;
+revoke all on function public.is_approved() from public, anon;
+grant execute on function public.is_approved() to authenticated;
+
+-- One quick call the app makes on each page: your status, whether you're the owner,
+-- and (owner only) how many people are waiting.
+create or replace function public.my_access()
+returns json
+language sql
+stable
+security definer
+set search_path = public, auth
+as $$
+  select json_build_object(
+    'status',   coalesce((select status from public.members where user_id = auth.uid()), 'pending'),
+    'is_owner', public.is_owner(),
+    'pending',  case when public.is_owner() then (select count(*) from public.members where status = 'pending') else 0 end
+  );
+$$;
+revoke all on function public.my_access() from public, anon;
+grant execute on function public.my_access() to authenticated;
+
+alter table public.members enable row level security;
+
+drop policy if exists "see own membership" on public.members;
+create policy "see own membership" on public.members
+  for select using (user_id = auth.uid() or public.is_owner());
+
+drop policy if exists "owner decides" on public.members;
+create policy "owner decides" on public.members
+  for update using (public.is_owner() and user_id <> auth.uid())
+  with check (public.is_owner() and user_id <> auth.uid());
+
+-- On top of "only your own data": only approved accounts can touch anything.
+drop policy if exists "approved only" on public.books;
+create policy "approved only" on public.books as restrictive
+  for all using (public.is_approved()) with check (public.is_approved());
+
+drop policy if exists "approved only" on public.categories;
+create policy "approved only" on public.categories as restrictive
+  for all using (public.is_approved()) with check (public.is_approved());
+
+drop policy if exists "approved only" on public.transactions;
+create policy "approved only" on public.transactions as restrictive
+  for all using (public.is_approved()) with check (public.is_approved());
+
+drop policy if exists "approved only" on public.sms_settings;
+create policy "approved only" on public.sms_settings as restrictive
+  for all using (public.is_approved()) with check (public.is_approved());
+
+drop policy if exists "approved only" on public.sms_inbox;
+create policy "approved only" on public.sms_inbox as restrictive
+  for all using (public.is_approved()) with check (public.is_approved());
+
+
+-- Event types for approvals, Google sign-in and the logging self-check.
+alter table public.security_events drop constraint if exists security_events_kind_check;
+alter table public.security_events add constraint security_events_kind_check check (kind in (
+  'visit', 'signin_success', 'signin_failed', 'signin_blocked', 'signup',
+  'password_reset_requested', 'password_changed', 'signout_all', 'sms_bad_token',
+  'member_approved', 'member_declined', 'member_removed', 'google_signin', 'logging_test'));

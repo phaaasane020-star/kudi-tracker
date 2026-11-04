@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Intro from "@/components/Intro";
+import VisitTracker from "@/components/VisitTracker";
 import { INTRO_FLAG } from "@/lib/intro";
 
 export const metadata: Metadata = {
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="min-h-dvh font-sans antialiased">
         <Intro />
+        <VisitTracker />
         {children}
       </body>
     </html>

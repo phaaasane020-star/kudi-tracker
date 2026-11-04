@@ -11,7 +11,7 @@ import { INTRO_FLAG } from "@/lib/intro";
  * so it never flashes.
  */
 const AWAY_MS = 10 * 60_000; // back after 10 minutes away counts as opening the app again
-const SLIDE_MS = 3600;
+const SLIDE_MS = 5200;
 
 export default function Intro() {
   const [stage, setStage] = useState<"splash" | "slides" | "hidden">("splash");
@@ -63,7 +63,7 @@ export default function Intro() {
   // Splash, then the slides move on by themselves like a short video.
   useEffect(() => {
     if (stage === "splash") {
-      const t = setTimeout(() => setStage("slides"), 1500);
+      const t = setTimeout(() => setStage("slides"), 2600);
       return () => clearTimeout(t);
     }
     if (stage === "slides" && !paused) {
@@ -147,7 +147,7 @@ export default function Intro() {
       }}
     >
       {/* Story-style progress: each bar fills while its slide plays. */}
-      <div className="safe-top flex gap-1.5 px-5 pt-3">
+      <div className="safe-top mx-auto flex w-full max-w-5xl gap-1.5 px-5 pt-3">
         {slides.map((_, n) => (
           <span key={n} className="h-1 flex-1 overflow-hidden rounded-full bg-line">
             <span
@@ -159,22 +159,40 @@ export default function Intro() {
         ))}
       </div>
 
-      <div className="flex items-center justify-between px-5 pt-3">
+      <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-5 pt-3 landscape:pt-2">
         <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-red text-lg font-bold text-white">₵</span>
         <button onClick={finish} className="press rounded-full px-3 py-1.5 text-[15px] font-medium text-muted hover:bg-wash">
           Skip
         </button>
       </div>
 
-      <div className="flex flex-1 flex-col justify-center overflow-hidden px-6">
-        <div key={i} className={`mx-auto w-full max-w-sm ${dir === 1 ? "slide-in-right" : "slide-in-left"}`}>
-          <div className="mb-8 flex h-56 items-center justify-center rounded-[28px] bg-cream sm:h-64">{s.art}</div>
-          <h2 className="display text-[32px] font-bold leading-[1.05]">{s.title}</h2>
-          <p className="mt-3 text-[17px] leading-relaxed text-muted">{s.body}</p>
+      {/* Phones: picture above text. iPad portrait: the same, larger.
+          Any screen on its side (iPad landscape, phone landscape): side by side. */}
+      <div className="flex min-h-0 flex-1 items-center overflow-hidden px-6 landscape:px-10">
+        <div
+          key={i}
+          className={`mx-auto grid w-full max-w-sm items-center gap-7 md:max-w-lg md:gap-10 landscape:max-w-5xl landscape:grid-cols-2 landscape:gap-12 ${
+            dir === 1 ? "slide-in-right" : "slide-in-left"
+          }`}
+        >
+          <div className="flex h-[clamp(10rem,34dvh,16rem)] items-center justify-center overflow-hidden rounded-[28px] bg-cream md:h-[min(24rem,40dvh)] landscape:h-[min(26rem,64dvh)]">
+            <div className="origin-center md:scale-125 landscape:scale-100 landscape:md:scale-110 lg:scale-125">{s.art}</div>
+          </div>
+          <div>
+            <h2 className="display text-[clamp(1.75rem,7vw,2.25rem)] font-bold leading-[1.05] md:text-5xl landscape:text-[clamp(1.6rem,3.2vw+0.6rem,3.25rem)]">
+              {s.title}
+            </h2>
+            <p className="mt-3 text-[17px] leading-relaxed text-muted md:text-lg landscape:text-[clamp(0.95rem,0.6vw+0.7rem,1.15rem)]">{s.body}</p>
+            <div className="mt-8 hidden landscape:flex">
+              <button onClick={() => go(i + 1)} className="btn px-6">
+                {i === 2 ? "Open Kudi" : "Next"} <ArrowRight size={18} />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="safe-bottom mx-auto flex w-full max-w-sm items-center justify-end px-6 pb-8 pt-4">
+      <div className="safe-bottom mx-auto flex w-full max-w-sm items-center justify-end px-6 pb-8 pt-4 md:max-w-lg landscape:hidden">
         <button onClick={() => go(i + 1)} className="btn px-6">
           {i === 2 ? "Open Kudi" : "Next"} <ArrowRight size={18} />
         </button>

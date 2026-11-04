@@ -84,31 +84,31 @@ body {
    Everything here is skipped for people who turn on "Reduce Motion". */
 @media (prefers-reduced-motion: no-preference) {
   .sheet-in {
-    animation: sheet-in 240ms cubic-bezier(0.16, 1, 0.3, 1);
+    animation: sheet-in 380ms cubic-bezier(0.16, 1, 0.3, 1);
   }
   .fade-in {
     animation: fade-in 220ms ease-out;
   }
   /* Sections rise in one after another; set --i on each (0, 1, 2 ...). */
   .rise {
-    animation: rise 340ms cubic-bezier(0.16, 1, 0.3, 1) both;
-    animation-delay: calc(var(--i, 0) * 35ms);
+    animation: rise 650ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(120ms + var(--i, 0) * 70ms);
   }
   /* Bars grow from the left. */
   .grow-x {
     transform-origin: left center;
-    animation: grow-x 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
-    animation-delay: calc(80ms + var(--i, 0) * 30ms);
+    animation: grow-x 1100ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(300ms + var(--i, 0) * 70ms);
   }
   .grow-y {
     transform-origin: bottom center;
-    animation: grow-y 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
-    animation-delay: calc(60ms + var(--i, 0) * 25ms);
+    animation: grow-y 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(250ms + var(--i, 0) * 45ms);
   }
   /* List rows slide in. */
   .row-in {
-    animation: row-in 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
-    animation-delay: calc(var(--i, 0) * 18ms);
+    animation: row-in 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(200ms + var(--i, 0) * 45ms);
   }
   .toast-in {
     animation: toast-in 380ms cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -117,8 +117,9 @@ body {
     animation: pop 420ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
   }
   /* Content fades up when you open a page. */
+  /* Page transition: the content glides up and fades in; header and tabs stay put. */
   .page-enter {
-    animation: fade-in 160ms ease-out both;
+    animation: page-in 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
   }
   /* Anything tappable gives a little squeeze. */
   .press {
@@ -193,6 +194,10 @@ body {
 @keyframes sheet-in {
   from { transform: translateY(40px); opacity: 0; }
   to { transform: none; opacity: 1; }
+}
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(18px); filter: blur(3px); }
+  to { opacity: 1; transform: none; filter: none; }
 }
 @keyframes fade-in {
   from { opacity: 0; }

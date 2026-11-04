@@ -1,5 +1,6 @@
 import "server-only";
 import { redirect } from "next/navigation";
+import { getAccess } from "@/lib/access";
 import { verifiedUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { currentMonth, isMonth, monthRange } from "@/lib/format";
@@ -16,7 +17,14 @@ export async function loadContext(params: PageParams) {
   const user = await verifiedUser(supabase);
   if (!user) redirect("/login");
 
-  let { data: books } = await supabase.from("books").select("id,name,kind,currency").order("kind", { ascending: false });
+  const [access, booksResult] = await Promise.all([
+    getAccess(),
+    supabase.from("books").select("id,name,kind,currency").order("kind", { ascending: false }),
+  ]);
+  // Not approved by the owner yet (or declined): wait on the approval page.
+  if (access.status !== "approved") redirect("/pending");
+
+  let books = booksResult.data;
   if (!books || books.length === 0) {
     const { error } = await supabase.rpc("ensure_setup");
     if (error) throw new Error("Could not set up your account: " + error.message);
@@ -30,7 +38,7 @@ export async function loadContext(params: PageParams) {
 
   const month = isMonth(params.month) ? params.month : currentMonth();
 
-  return { supabase, user, books: allBooks, book, month };
+  return { supabase, user, books: allBooks, book, month, access };
 }
 
 export async function loadCategories(

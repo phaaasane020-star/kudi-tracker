@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Money from "@/components/Money";
 
 /** Money that counts up from zero when the page opens. Shows the final value straight away if motion is reduced. */
-export default function CountUp({ value, duration = 600 }: { value: number; duration?: number }) {
+export default function CountUp({ value, duration = 1400 }: { value: number; duration?: number }) {
   const [shown, setShown] = useState(value);
 
   useEffect(() => {

@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import Footer from "@/components/Footer";
+import AuthShell from "@/components/AuthShell";
 import { ResetForm } from "@/components/PasswordForms";
 import { createClient } from "@/lib/supabase/server";
 
@@ -12,13 +12,8 @@ export default async function ResetPage() {
   if (!user) redirect("/login?notice=link-expired");
 
   return (
-    <div className="flex min-h-dvh flex-col">
-      <main className="flex flex-1 flex-col justify-center px-5 py-12 sm:px-12">
-        <div className="mx-auto w-full max-w-sm">
-          <ResetForm email={user.email ?? "your account"} />
-        </div>
-      </main>
-      <Footer />
-    </div>
+    <AuthShell signedIn heading="A fresh password." text="Pick one you don't use anywhere else. Every other device signed in to your account will be signed out.">
+      <ResetForm email={user.email ?? "your account"} />
+    </AuthShell>
   );
 }

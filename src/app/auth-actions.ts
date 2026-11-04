@@ -2,6 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { checkSignupEmail } from "@/lib/email-check";
+import { isStrongPassword } from "@/lib/password";
 import { isLockedOut, logEvent, siteOrigin } from "@/lib/security";
 
 export type AuthState = { ok: boolean; message: string; stamp: number };
@@ -36,8 +38,9 @@ export async function signIn(_prev: AuthState, fd: FormData): Promise<AuthState>
 export async function signUp(_prev: AuthState, fd: FormData): Promise<AuthState> {
   const email = str(fd, "email").toLowerCase();
   const password = String(fd.get("password") ?? "");
-  if (!validEmail(email)) return fail("Enter a valid email.");
-  if (password.length < 8) return fail("Use at least 8 characters for your password.");
+  const emailProblem = await checkSignupEmail(email);
+  if (emailProblem) return fail(emailProblem);
+  if (!isStrongPassword(password, email)) return fail("Choose a stronger password. Tick every rule under the password box.");
   if (await isLockedOut(email, ["signup"], 3, 60)) return fail("Too many sign-up attempts. Try again in an hour.");
 
   const supabase = await createClient();
@@ -52,7 +55,7 @@ export async function signUp(_prev: AuthState, fd: FormData): Promise<AuthState>
     return fail(error.message);
   }
   if (data.session) redirect("/");
-  return done("Account created. Open the email from Supabase and tap the link to confirm, then sign in.");
+  return done("Almost there. Open the email we sent and tap the link to confirm it's really you. Then the owner of this Kudi Tracker has to approve you before you can use it.");
 }
 
 export async function requestPasswordReset(_prev: AuthState, fd: FormData): Promise<AuthState> {
@@ -72,7 +75,6 @@ export async function requestPasswordReset(_prev: AuthState, fd: FormData): Prom
 export async function setNewPassword(_prev: AuthState, fd: FormData): Promise<AuthState> {
   const password = String(fd.get("password") ?? "");
   const confirm = String(fd.get("confirm") ?? "");
-  if (password.length < 8) return fail("Use at least 8 characters.");
   if (password !== confirm) return fail("The two passwords don't match.");
 
   const supabase = await createClient();
@@ -80,6 +82,7 @@ export async function setNewPassword(_prev: AuthState, fd: FormData): Promise<Au
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return fail("Your reset link has expired. Ask for a new one.");
+  if (!isStrongPassword(password, user.email ?? "")) return fail("Choose a stronger password. Tick every rule under the password box.");
 
   const { error } = await supabase.auth.updateUser({ password });
   if (error) return fail(/different|same/i.test(error.message) ? "Choose a password you haven't used here before." : error.message);
@@ -98,4 +101,18 @@ export async function signOutEverywhere() {
   await logEvent("signout_all", { email: user?.email, user_id: user?.id });
   await supabase.auth.signOut({ scope: "global" });
   redirect("/login");
+}
+
+/** "Continue with Google": sends you to Google, then back through /auth/callback. */
+export async function signInWithGoogle() {
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${await siteOrigin()}/auth/callback?via=google`,
+      queryParams: { prompt: "select_account" },
+    },
+  });
+  if (error || !data.url) redirect("/login?notice=google-off");
+  redirect(data.url);
 }

@@ -4,6 +4,8 @@ import { ArrowLeft, Eye, EyeOff, MailCheck } from "lucide-react";
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { requestPasswordReset, setNewPassword, type AuthState } from "@/app/auth-actions";
+import PasswordMeter from "@/components/PasswordMeter";
+import { isStrongPassword } from "@/lib/password";
 
 const initial: AuthState = { ok: false, message: "", stamp: 0 };
 
@@ -50,6 +52,8 @@ export function ForgotForm() {
 export function ResetForm({ email }: { email: string }) {
   const [state, action, pending] = useActionState(setNewPassword, initial);
   const [show, setShow] = useState(false);
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
   return (
     <div className="rise">
       <h1 className="text-2xl font-bold">Choose a new password</h1>
@@ -58,7 +62,16 @@ export function ResetForm({ email }: { email: string }) {
         <label className="block">
           <span className="mb-1.5 block text-sm font-medium">New password</span>
           <span className="relative block">
-            <input className="field pr-12" name="password" type={show ? "text" : "password"} required minLength={8} autoComplete="new-password" autoFocus />
+            <input
+              className="field pr-12"
+              name="password"
+              type={show ? "text" : "password"}
+              required
+              autoComplete="new-password"
+              autoFocus
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
             <button
               type="button"
               onClick={() => setShow(!show)}
@@ -68,14 +81,23 @@ export function ResetForm({ email }: { email: string }) {
               {show ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </span>
-          <span className="mt-1.5 block text-[13px] text-muted">At least 8 characters.</span>
+          <PasswordMeter password={password} email={email} />
         </label>
         <label className="block">
           <span className="mb-1.5 block text-sm font-medium">Type it again</span>
-          <input className="field" name="confirm" type={show ? "text" : "password"} required minLength={8} autoComplete="new-password" />
+          <input
+            className="field"
+            name="confirm"
+            type={show ? "text" : "password"}
+            required
+            autoComplete="new-password"
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+          />
+          {confirm && confirm !== password && <span className="mt-1.5 block text-[13px] text-red-dark">Doesn&apos;t match yet.</span>}
         </label>
         {state.message && <p className="fade-in rounded-xl bg-red/10 px-3.5 py-2.5 text-sm text-red-dark">{state.message}</p>}
-        <button className="btn w-full" disabled={pending}>
+        <button className="btn w-full" disabled={pending || !isStrongPassword(password, email) || password !== confirm}>
           {pending ? "Saving…" : "Save new password"}
         </button>
       </form>

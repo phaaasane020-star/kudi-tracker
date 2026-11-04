@@ -1,12 +1,13 @@
-import { ChevronLeft, ChevronRight, LayoutDashboard, LogOut, PieChart, ReceiptText, ShieldCheck, Smartphone } from "lucide-react";
+import { ChevronLeft, ChevronRight, LayoutDashboard, LogOut, PieChart, ReceiptText, ShieldCheck, Smartphone, Users } from "lucide-react";
 import Link from "next/link";
 import { signOut } from "@/app/actions";
 import Footer from "@/components/Footer";
 import AddRecordSheet, { AddButton } from "@/components/AddRecord";
 import { currentMonth, monthLabel, nextMonth, prevMonth } from "@/lib/format";
+import { getAccess } from "@/lib/access";
 import type { Book, Category } from "@/lib/types";
 
-export type AppPath = "/" | "/transactions" | "/categories" | "/settings" | "/security";
+export type AppPath = "/" | "/transactions" | "/categories" | "/settings" | "/security" | "/people";
 
 const NAV: { path: AppPath; label: string; short: string; icon: typeof LayoutDashboard }[] = [
   { path: "/", label: "Overview", short: "Home", icon: LayoutDashboard },
@@ -14,13 +15,14 @@ const NAV: { path: AppPath; label: string; short: string; icon: typeof LayoutDas
   { path: "/categories", label: "Budgets", short: "Budgets", icon: PieChart },
   { path: "/settings", label: "Auto MoMo", short: "MoMo", icon: Smartphone },
 ];
-const SIDEBAR = [...NAV, { path: "/security" as AppPath, label: "Security", short: "Security", icon: ShieldCheck }];
+const SECURITY = { path: "/security" as AppPath, label: "Security", short: "Security", icon: ShieldCheck };
+const PEOPLE = { path: "/people" as AppPath, label: "People", short: "People", icon: Users };
 
 export function link(path: string, kind: string, month: string, extra?: Record<string, string>) {
   return `${path}?${new URLSearchParams({ book: kind, month, ...extra })}`;
 }
 
-export default function AppShell({
+export default async function AppShell({
   path,
   book,
   month,
@@ -38,6 +40,8 @@ export default function AppShell({
   children: React.ReactNode;
 }) {
   const atCurrent = month >= currentMonth();
+  const access = await getAccess();
+  const SIDEBAR = access.isOwner ? [...NAV, PEOPLE, SECURITY] : [...NAV, SECURITY];
 
   const bookSwitch = (
     <div className="grid grid-cols-2 rounded-full bg-wash p-1 text-sm font-semibold">
@@ -92,7 +96,10 @@ export default function AppShell({
               }`}
             >
               <n.icon size={19} className={path === n.path ? "text-red" : ""} />
-              {n.label}
+              <span className="flex-1">{n.label}</span>
+              {n.path === "/people" && access.pending > 0 && (
+                <span className="pop rounded-full bg-red px-2 py-0.5 text-xs font-bold text-white">{access.pending}</span>
+              )}
             </Link>
           ))}
         </nav>
@@ -116,6 +123,20 @@ export default function AppShell({
             <h1 className="hidden text-2xl font-bold lg:block">{title}</h1>
             <div className="flex items-center gap-1.5 lg:hidden">
               {bookSwitch}
+              {access.isOwner && (
+                <Link
+                  href={link("/people", book.kind, month)}
+                  aria-label={access.pending ? `People, ${access.pending} waiting` : "People"}
+                  className={`press relative rounded-full p-2 ${path === "/people" ? "bg-cream text-red" : "text-muted hover:bg-wash hover:text-ink"}`}
+                >
+                  <Users size={20} />
+                  {access.pending > 0 && (
+                    <span className="pop absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red px-1 text-[10px] font-bold text-white">
+                      {access.pending}
+                    </span>
+                  )}
+                </Link>
+              )}
               <Link
                 href={link("/security", book.kind, month)}
                 aria-label="Security"
