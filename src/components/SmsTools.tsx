@@ -1,6 +1,7 @@
 "use client";
 
-import { Check, Copy } from "lucide-react";
+import { ArrowRight, Check, Copy } from "lucide-react";
+import Link from "next/link";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { importSms, type FormState } from "@/app/actions";
 
@@ -55,9 +56,14 @@ export function PasteSms({ bookId }: { bookId: string }) {
         {pending ? "Reading…" : "Record this message"}
       </button>
       {state.message && (
-        <p className={`rounded-xl px-3.5 py-2.5 text-sm ${state.ok ? "bg-green/10 text-green" : "bg-cream text-ink"}`} role="status">
-          {state.message}
-        </p>
+        <div className={`fade-in rounded-xl px-3.5 py-3 text-sm ${state.ok ? "bg-green/10 text-green" : "bg-cream text-ink"}`} role="status">
+          <p>{state.message}</p>
+          {state.href && (
+            <Link href={state.href} className="mt-2 inline-flex items-center gap-1 font-semibold text-ink underline-offset-2 hover:underline">
+              {state.hrefLabel ?? "See it"} <ArrowRight size={14} />
+            </Link>
+          )}
+        </div>
       )}
     </form>
   );

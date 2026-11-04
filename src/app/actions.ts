@@ -6,7 +6,7 @@ import { verifiedUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { PAYMENT_METHODS } from "@/lib/format";
 
-export type FormState = { ok: boolean; message: string; stamp: number };
+export type FormState = { ok: boolean; message: string; stamp: number; href?: string; hrefLabel?: string };
 
 const fail = (message: string): FormState => ({ ok: false, message, stamp: Date.now() });
 const done = (message: string): FormState => ({ ok: true, message, stamp: Date.now() });
@@ -154,8 +154,12 @@ export async function importSms(_prev: FormState, fd: FormData): Promise<FormSta
   const { recordSms } = await import("@/lib/record-sms");
   const out = await recordSms(supabase, user.id, bookId, text, "pasted");
   revalidatePath("/", "layout");
-  if (out.status === "recorded") return done(out.detail);
-  if (out.status === "duplicate") return fail("That message is already recorded.");
+  const href = out.where ? `/transactions?book=${out.where.book}&month=${out.where.date.slice(0, 7)}` : undefined;
+  const label = out.where
+    ? `See it in ${out.where.bookName}, ${new Date(out.where.date + "T00:00:00Z").toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" })}`
+    : undefined;
+  if (out.status === "recorded") return { ...done(out.detail), href, hrefLabel: label };
+  if (out.status === "duplicate") return { ...fail("That message is already recorded."), href, hrefLabel: label };
   return fail(out.status === "skipped" ? `Skipped: ${out.detail}` : out.detail);
 }
 

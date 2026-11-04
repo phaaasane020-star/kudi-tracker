@@ -9,6 +9,8 @@ export type SmsOutcome = {
   status: "recorded" | "skipped" | "duplicate" | "error";
   detail: string;
   transactionId?: string;
+  /** Where the record lives, so the app can link straight to it. */
+  where?: { date: string; book: "personal" | "business"; bookName: string };
 };
 
 /**
@@ -68,6 +70,22 @@ async function process(
     : "sms:" + createHash("sha256").update(body.replace(/\s+/g, " ").trim()).digest("hex").slice(0, 24);
 
   const date = p.date && p.date <= today() ? p.date : today();
+  const { data: bookRow } = await supabase.from("books").select("name,kind").eq("id", bookId).maybeSingle();
+  const where = { date, book: (bookRow?.kind ?? "personal") as "personal" | "business", bookName: bookRow?.name ?? "Personal" };
+  const place = ` (${new Date(date + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })}, ${where.bookName})`;
+  const alreadyThere = async (): Promise<SmsOutcome> => {
+    const { data: old } = await supabase
+      .from("transactions")
+      .select("id,occurred_on,books(name,kind)")
+      .eq("user_id", userId)
+      .in("reference", [ref, ref + ":fee"])
+      .limit(1)
+      .maybeSingle();
+    const b = (old?.books ?? null) as unknown as { name: string; kind: "personal" | "business" } | null;
+    return old
+      ? { status: "duplicate", detail: "Already recorded", transactionId: old.id, where: { date: old.occurred_on, book: b?.kind ?? "personal", bookName: b?.name ?? "Personal" } }
+      : { status: "duplicate", detail: "Already recorded" };
+  };
   const charges = Math.round((p.fee + p.tax) * 100) / 100;
   let mainId: string | undefined;
 
@@ -97,7 +115,7 @@ async function process(
       .single();
 
     if (error) {
-      if (error.code === "23505") return { status: "duplicate", detail: "Already recorded" };
+      if (error.code === "23505") return alreadyThere();
       return { status: "error", detail: error.message };
     }
     mainId = data.id;
@@ -117,13 +135,13 @@ async function process(
       source: "sms",
       needs_review: false,
     });
-    if (error && error.code === "23505" && !mainId) return { status: "duplicate", detail: "Already recorded" };
+    if (error && error.code === "23505" && !mainId) return alreadyThere();
     if (error && error.code !== "23505") return { status: "error", detail: error.message };
   }
 
   if (p.kind === "cashout") {
     return charges > 0
-      ? { status: "recorded", detail: `Cash out of ${cedi(p.amount)}: recorded ${cedi(charges)} in charges` }
+      ? { status: "recorded", detail: `Cash out of ${cedi(p.amount)}: recorded ${cedi(charges)} in charges${place}`, where }
       : { status: "skipped", detail: `Cash out of ${cedi(p.amount)}, no charges` };
   }
 
@@ -131,7 +149,8 @@ async function process(
   const extra = charges > 0 ? ` + ${cedi(charges)} charges` : "";
   return {
     status: "recorded",
-    detail: `${verb} ${cedi(p.amount)}${p.counterparty ? ` ${p.kind === "sent" ? "to" : "from"} ${p.counterparty}` : ""}${extra}`,
+    detail: `${verb} ${cedi(p.amount)}${p.counterparty ? ` ${p.kind === "sent" ? "to" : "from"} ${p.counterparty}` : ""}${extra}${place}`,
     transactionId: mainId,
+    where,
   };
 }

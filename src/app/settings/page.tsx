@@ -1,5 +1,6 @@
 import { LogOut } from "lucide-react";
 import { headers } from "next/headers";
+import Link from "next/link";
 import { rotateSmsToken, signOut, updateSmsSettings } from "@/app/actions";
 import AppShell from "@/components/AppShell";
 import { CopyField, PasteSms } from "@/components/SmsTools";
@@ -34,7 +35,7 @@ export default async function AutoMomoPage({ searchParams }: { searchParams: Pro
     loadCategories(supabase, book.id),
     supabase
       .from("sms_inbox")
-      .select("id,body,status,detail,received_at")
+      .select("id,body,status,detail,received_at,transactions(occurred_on,books(kind,name))")
       .eq("user_id", user.id)
       .order("received_at", { ascending: false })
       .limit(15),
@@ -175,6 +176,18 @@ export default async function AutoMomoPage({ searchParams }: { searchParams: Pro
                   </div>
                   <p className="mt-1.5 text-[15px]">{m.detail}</p>
                   <p className="mt-1 line-clamp-2 text-[13px] text-muted">{m.body}</p>
+                  {(() => {
+                    const t = m.transactions as unknown as { occurred_on: string; books: { kind: string; name: string } | null } | null;
+                    if (!t) return null;
+                    return (
+                      <Link
+                        href={`/transactions?book=${t.books?.kind ?? "personal"}&month=${t.occurred_on.slice(0, 7)}`}
+                        className="mt-2 inline-flex text-sm font-semibold text-red hover:underline"
+                      >
+                        See it in Records
+                      </Link>
+                    );
+                  })()}
                 </li>
               ))}
             </ul>
