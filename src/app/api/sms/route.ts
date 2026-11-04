@@ -92,9 +92,12 @@ async function readBody(request: NextRequest): Promise<{ text: string; sender: s
     obj = { text: raw };
   }
 
+  // Keys are matched without caring about capitals ("Text" works like "text").
+  const lower: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(obj)) lower[k.toLowerCase().trim()] = v;
   const pick = (...keys: string[]) => {
     for (const k of keys) {
-      const v = obj[k];
+      const v = lower[k];
       const t = asText(v);
       if (t) return t;
     }
