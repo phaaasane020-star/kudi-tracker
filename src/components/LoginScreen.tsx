@@ -147,7 +147,7 @@ export default function LoginScreen({ notice }: { notice?: string }) {
 
 /**
  * Styled to Google's sign-in button guidelines (light theme): white, grey outline, dark grey text.
- * Google's official "G" mark appears once you add their file to public/google-g.svg
+ * Google's official "G" mark appears once you add their file to public/google-g.png
  * (download it from Google's "Sign in with Google" branding guidelines page).
  */
 function GoogleButton() {
@@ -160,7 +160,7 @@ function GoogleButton() {
     >
       {logo && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src="/google-g.svg" alt="" width={20} height={20} className="h-5 w-5" onError={() => setLogo(false)} />
+        <img src="/google-g.png" alt="" width={20} height={20} className="h-5 w-5" onError={() => setLogo(false)} />
       )}
       {pending ? "Opening Google…" : "Continue with Google"}
     </button>
