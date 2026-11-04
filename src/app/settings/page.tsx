@@ -1,4 +1,4 @@
-import { LogOut } from "lucide-react";
+import { LogOut, RefreshCw } from "lucide-react";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { rotateSmsToken, signOut, updateSmsSettings } from "@/app/actions";
@@ -111,8 +111,11 @@ export default async function AutoMomoPage({ searchParams }: { searchParams: Pro
               This is a localhost link, so your phone can&apos;t reach it. Deploy to Vercel first, then copy the link from your live site.
             </p>
           )}
-          <form action={rotateSmsToken}>
-            <button className="text-sm font-medium text-red hover:underline">Make a new link (the old one stops working)</button>
+          <form action={rotateSmsToken} className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
+            <button className="btn-soft border-red/30 text-red-dark hover:bg-red/5">
+              <RefreshCw size={16} /> Make a new link
+            </button>
+            <span className="text-[13px] text-muted">The old link stops working straight away.</span>
           </form>
         </section>
 
