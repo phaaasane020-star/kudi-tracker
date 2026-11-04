@@ -28,9 +28,10 @@ export default function Footer({ signedIn = true, owner = false, tone = "light" 
               <Link href="/settings" className="hover:text-ink">
                 Auto MoMo
               </Link>
-              <Link href="/reset" className="hover:text-ink">
-                Change password
+              <Link href="/account" className="hover:text-ink">
+                Account &amp; data
               </Link>
+
             </>
           ) : (
             <>
@@ -41,6 +42,11 @@ export default function Footer({ signedIn = true, owner = false, tone = "light" 
                 Forgot password
               </Link>
             </>
+          )}
+          {signedIn && (
+            <Link href="/guide" className="hover:text-ink">
+              How to use Kudi
+            </Link>
           )}
           <a href="https://paatech.vercel.app" target="_blank" rel="noopener noreferrer" className="hover:text-ink">
             Built by Paa Asane Technologies

@@ -46,7 +46,7 @@ export default async function Overview({ searchParams }: { searchParams: Promise
       <div className="grid gap-5 lg:grid-cols-[1.15fr_1fr]">
         <div className="space-y-5">
           {/* The month at a glance */}
-          <section className="rise relative isolate overflow-hidden rounded-[20px] bg-brown p-5 text-cream sm:p-6">
+          <section data-tour="hero" className="rise relative isolate overflow-hidden rounded-[20px] bg-brown p-5 text-cream sm:p-6">
             <div aria-hidden className="float-slow pointer-events-none absolute -z-10 -right-16 -top-20 h-56 w-56 rounded-full bg-red/25 blur-3xl" />
             <div aria-hidden className="float-slow pointer-events-none absolute -z-10 -bottom-24 left-10 h-48 w-48 rounded-full bg-orange/15 blur-3xl [animation-delay:-3s]" />
             <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">

@@ -1,6 +1,8 @@
 import { setArchived, updateBudget } from "@/app/actions";
 import AddCategory from "@/components/AddCategory";
+import { deleteCategory } from "@/app/delete-actions";
 import AppShell from "@/components/AppShell";
+import ConfirmButton from "@/components/ConfirmButton";
 import CountUp from "@/components/CountUp";
 import { categoryIcon } from "@/lib/category-icons";
 import { loadCategories, loadContext, loadMonthTransactions, type PageParams } from "@/lib/data";
@@ -86,6 +88,10 @@ function Row({ c, i, spent, withBudget = false }: { c: Category; i: number; spen
           <input type="hidden" name="id" value={c.id} />
           <input type="hidden" name="archived" value={String(!c.archived)} />
           <button className="rounded-lg px-2 py-1 text-[13px] text-muted hover:bg-wash hover:text-ink">{c.archived ? "Show" : "Hide"}</button>
+        </form>
+        <form action={deleteCategory} title="Its records stay, just without a category">
+          <input type="hidden" name="id" value={c.id} />
+          <ConfirmButton size="sm" label="Delete" confirmLabel="Delete?" />
         </form>
       </div>
 

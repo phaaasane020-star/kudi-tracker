@@ -13,6 +13,7 @@ const initial: AuthState = { ok: false, message: "", stamp: 0 };
 
 const NOTICES: Record<string, string> = {
   "link-expired": "That email link has expired or was already used. Sign in, or ask for a new reset link.",
+  "account-deleted": "Your account and everything in it has been deleted.",
   "google-off": "Google sign-in isn't switched on for this app yet. Use your email and password for now.",
 };
 

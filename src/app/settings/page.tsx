@@ -2,7 +2,9 @@ import { LogOut } from "lucide-react";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { rotateSmsToken, signOut, updateSmsSettings } from "@/app/actions";
+import { clearInbox, deleteInboxItem } from "@/app/delete-actions";
 import AppShell from "@/components/AppShell";
+import ConfirmButton from "@/components/ConfirmButton";
 import { CopyField, PasteSms } from "@/components/SmsTools";
 import { loadCategories, loadContext, type PageParams } from "@/lib/data";
 import { timeAgo } from "@/lib/format";
@@ -163,7 +165,14 @@ export default async function AutoMomoPage({ searchParams }: { searchParams: Pro
         </section>
 
         <section className="rise panel sm:p-5" style={{ "--i": 4 } as React.CSSProperties}>
-          <h2 className="section-title mb-3">Messages received</h2>
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h2 className="section-title">Messages received</h2>
+            {inbox && inbox.length > 0 && (
+              <form action={clearInbox}>
+                <ConfirmButton size="sm" label="Clear all" confirmLabel="Tap again to clear" />
+              </form>
+            )}
+          </div>
           {!inbox || inbox.length === 0 ? (
             <p className="text-[15px] text-muted">Messages from your phone will show up here.</p>
           ) : (
@@ -172,7 +181,13 @@ export default async function AutoMomoPage({ searchParams }: { searchParams: Pro
                 <li key={m.id} className="row-in px-4 py-3.5" style={{ ["--i" as string]: Math.min(n, 12) }}>
                   <div className="flex items-center justify-between gap-3">
                     <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ${STATUS_STYLE[m.status]}`}>{m.status}</span>
-                    <span className="text-xs text-muted">{timeAgo(m.received_at)}</span>
+                    <span className="flex items-center gap-1">
+                      <span className="text-xs text-muted">{timeAgo(m.received_at)}</span>
+                      <form action={deleteInboxItem}>
+                        <input type="hidden" name="id" value={m.id} />
+                        <ConfirmButton size="sm" label="Delete" confirmLabel="Delete?" />
+                      </form>
+                    </span>
                   </div>
                   <p className="mt-1.5 text-[15px]">{m.detail}</p>
                   <p className="mt-1 line-clamp-2 text-[13px] text-muted">{m.body}</p>
@@ -193,6 +208,10 @@ export default async function AutoMomoPage({ searchParams }: { searchParams: Pro
             </ul>
           )}
         </section>
+
+        <Link href="/account" className="btn-soft w-full lg:hidden">
+          Account &amp; data
+        </Link>
 
         <form action={signOut} className="lg:hidden">
           <button className="btn-soft w-full">

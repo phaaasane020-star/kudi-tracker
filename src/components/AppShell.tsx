@@ -1,13 +1,14 @@
-import { ChevronLeft, ChevronRight, LayoutDashboard, LogOut, PieChart, ReceiptText, ShieldCheck, Smartphone, Users } from "lucide-react";
+import { ChevronLeft, ChevronRight, LayoutDashboard, LogOut, PieChart, ReceiptText, ShieldCheck, Smartphone, Users, CircleHelp, UserCog } from "lucide-react";
 import Link from "next/link";
 import { signOut } from "@/app/actions";
 import Footer from "@/components/Footer";
+import Tour from "@/components/Tour";
 import AddRecordSheet, { AddButton } from "@/components/AddRecord";
 import { currentMonth, monthLabel, nextMonth, prevMonth } from "@/lib/format";
 import { getAccess } from "@/lib/access";
 import type { Book, Category } from "@/lib/types";
 
-export type AppPath = "/" | "/transactions" | "/categories" | "/settings" | "/security" | "/people";
+export type AppPath = "/" | "/transactions" | "/categories" | "/settings" | "/security" | "/people" | "/guide" | "/account";
 
 const NAV: { path: AppPath; label: string; short: string; icon: typeof LayoutDashboard }[] = [
   { path: "/", label: "Overview", short: "Home", icon: LayoutDashboard },
@@ -16,7 +17,9 @@ const NAV: { path: AppPath; label: string; short: string; icon: typeof LayoutDas
   { path: "/settings", label: "Auto MoMo", short: "MoMo", icon: Smartphone },
 ];
 const SECURITY = { path: "/security" as AppPath, label: "Security", short: "Security", icon: ShieldCheck };
+const HELP = { path: "/guide" as AppPath, label: "Help", short: "Help", icon: CircleHelp };
 const PEOPLE = { path: "/people" as AppPath, label: "People", short: "People", icon: Users };
+const ACCOUNT = { path: "/account" as AppPath, label: "Account & data", short: "Account", icon: UserCog };
 
 export function link(path: string, kind: string, month: string, extra?: Record<string, string>) {
   return `${path}?${new URLSearchParams({ book: kind, month, ...extra })}`;
@@ -42,10 +45,10 @@ export default async function AppShell({
   const atCurrent = month >= currentMonth();
   const access = await getAccess();
   // People and Security belong to the owner only; everyone else just sees their own money.
-  const SIDEBAR = access.isOwner ? [...NAV, PEOPLE, SECURITY] : NAV;
+  const SIDEBAR = access.isOwner ? [...NAV, PEOPLE, SECURITY, ACCOUNT, HELP] : [...NAV, ACCOUNT, HELP];
 
   const bookSwitch = (
-    <div className="grid grid-cols-2 rounded-full bg-wash p-1 text-sm font-semibold">
+    <div data-tour="book" className="grid grid-cols-2 rounded-full bg-wash p-1 text-sm font-semibold">
       {(["personal", "business"] as const).map((k) => (
         <Link
           key={k}
@@ -61,7 +64,7 @@ export default async function AppShell({
   );
 
   const monthNav = showMonth && (
-    <div className="flex items-center gap-1">
+    <div data-tour="month" className="flex items-center gap-1">
       <Link href={link(path, book.kind, prevMonth(month))} className="rounded-full p-2 text-muted hover:bg-wash hover:text-ink" aria-label="Previous month">
         <ChevronLeft size={20} />
       </Link>
@@ -91,6 +94,7 @@ export default async function AppShell({
           {SIDEBAR.map((n) => (
             <Link
               key={n.path}
+              data-tour={`nav-${n.path}`}
               href={link(n.path, book.kind, month)}
               className={`press flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] ${
                 path === n.path ? "bg-white font-semibold text-ink shadow-sm" : "text-muted hover:bg-white/60 hover:text-ink"
@@ -105,7 +109,9 @@ export default async function AppShell({
           ))}
         </nav>
         <div className="mt-6">
-          <AddButton variant="sidebar" />
+          <div data-tour="add">
+            <AddButton variant="sidebar" />
+          </div>
         </div>
         <form action={signOut} className="mt-auto">
           <button className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-muted hover:bg-white/60 hover:text-ink">
@@ -138,6 +144,15 @@ export default async function AppShell({
                   )}
                 </Link>
               )}
+              <Link
+                href={link("/guide", book.kind, month)}
+                aria-label="Help"
+                className={`press rounded-full p-2 ${access.isOwner ? "hidden min-[400px]:inline-flex" : "inline-flex"} ${
+                  path === "/guide" ? "bg-cream text-red" : "text-muted hover:bg-wash hover:text-ink"
+                }`}
+              >
+                <CircleHelp size={20} />
+              </Link>
               {access.isOwner && (
                 <Link
                   href={link("/security", book.kind, month)}
@@ -175,7 +190,7 @@ export default async function AppShell({
           {NAV.slice(0, 2).map((n) => (
             <Tab key={n.path} n={n} active={path === n.path} href={link(n.path, book.kind, month)} />
           ))}
-          <div className="flex justify-center">
+          <div data-tour="add" className="flex justify-center">
             <AddButton variant="fab" />
           </div>
           {NAV.slice(2).map((n) => (
@@ -185,13 +200,14 @@ export default async function AppShell({
       </nav>
 
       <AddRecordSheet bookId={book.id} categories={categories} />
+      {path === "/" && <Tour />}
     </div>
   );
 }
 
 function Tab({ n, active, href }: { n: (typeof NAV)[number]; active: boolean; href: string }) {
   return (
-    <Link href={href} className={`press relative flex flex-col items-center gap-1 py-1 text-[11px] font-medium ${active ? "tab-active text-red" : "text-muted"}`}>
+    <Link href={href} data-tour={`nav-${n.path}`} className={`press relative flex flex-col items-center gap-1 py-1 text-[11px] font-medium ${active ? "tab-active text-red" : "text-muted"}`}>
       <n.icon size={22} strokeWidth={active ? 2.4 : 1.8} />
       {n.short}
       <span className={`tab-dot absolute -bottom-1 h-1 w-1 rounded-full bg-red ${active ? "scale-100 opacity-100" : "scale-0 opacity-0"}`} />
