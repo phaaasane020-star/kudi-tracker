@@ -55,7 +55,7 @@ export async function signUp(_prev: AuthState, fd: FormData): Promise<AuthState>
     return fail(error.message);
   }
   if (data.session) redirect("/");
-  return done("Almost there. Open the email we sent and tap the link to confirm it's really you. Then the owner of this Kudi Tracker has to approve you before you can use it.");
+  return done("Check your email and tap the link we sent you.");
 }
 
 export async function requestPasswordReset(_prev: AuthState, fd: FormData): Promise<AuthState> {
@@ -105,6 +105,17 @@ export async function signOutEverywhere() {
 
 /** "Continue with Google": sends you to Google, then back through /auth/callback. */
 export async function signInWithGoogle() {
+  // Ask Supabase first whether Google is switched on, so people never land on a raw error page.
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/settings`, {
+      headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY! },
+      cache: "no-store",
+    });
+    const settings = (await res.json()) as { external?: { google?: boolean } };
+    if (settings.external && !settings.external.google) redirect("/login?notice=google-off");
+  } catch (e) {
+    if (e && typeof e === "object" && "digest" in e) throw e; // let the redirect through
+  }
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
