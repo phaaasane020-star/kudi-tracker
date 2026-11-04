@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import { recordSms } from "@/lib/record-sms";
+import { logEvent } from "@/lib/security";
 
 /**
  * Your phone forwards each Mobile Money SMS here:
@@ -10,7 +11,10 @@ import { recordSms } from "@/lib/record-sms";
  */
 export async function POST(request: NextRequest) {
   const token = request.nextUrl.searchParams.get("token") ?? request.headers.get("x-kudi-token") ?? "";
-  if (token.length < 32) return NextResponse.json({ ok: false, error: "Missing token" }, { status: 401 });
+  if (token.length < 32) {
+    await logEvent("sms_bad_token", { path: "/api/sms" });
+    return NextResponse.json({ ok: false, error: "Missing token" }, { status: 401 });
+  }
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -24,7 +28,10 @@ export async function POST(request: NextRequest) {
     .select("user_id,book_id,enabled")
     .eq("token", token)
     .maybeSingle();
-  if (!settings) return NextResponse.json({ ok: false, error: "Unknown token" }, { status: 401 });
+  if (!settings) {
+    await logEvent("sms_bad_token", { path: "/api/sms" });
+    return NextResponse.json({ ok: false, error: "Unknown token" }, { status: 401 });
+  }
   if (!settings.enabled) return NextResponse.json({ ok: true, status: "paused" });
 
   if (Number(request.headers.get("content-length") ?? 0) > 10_000) {

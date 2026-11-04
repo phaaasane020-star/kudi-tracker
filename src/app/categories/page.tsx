@@ -1,7 +1,7 @@
 import { setArchived, updateBudget } from "@/app/actions";
 import AddCategory from "@/components/AddCategory";
 import AppShell from "@/components/AppShell";
-import Money from "@/components/Money";
+import CountUp from "@/components/CountUp";
 import { categoryIcon } from "@/lib/category-icons";
 import { loadCategories, loadContext, loadMonthTransactions, type PageParams } from "@/lib/data";
 import { cedi, shortMonth } from "@/lib/format";
@@ -26,12 +26,12 @@ export default async function BudgetsPage({ searchParams }: { searchParams: Prom
   return (
     <AppShell path="/categories" book={book} month={month} categories={categories} title="Budgets">
       <div className="mx-auto max-w-3xl space-y-5">
-        <section className="rounded-[20px] bg-cream p-5">
+        <section className="rise rounded-[20px] bg-cream p-5">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <p className="text-[15px] text-muted">Budgeted for {shortMonth(month)}</p>
               <p className="display mt-1 text-[40px] font-bold leading-none">
-                <Money value={totalUsed} />
+                <CountUp value={totalUsed} />
               </p>
               <p className="tabular mt-1.5 text-[15px] text-muted">of {cedi(totalBudget)} across {budgeted.length} categories</p>
             </div>
@@ -40,7 +40,7 @@ export default async function BudgetsPage({ searchParams }: { searchParams: Prom
           {totalBudget > 0 && (
             <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-white">
               <div
-                className={`h-full rounded-full ${totalUsed > totalBudget ? "bg-red" : "bg-green"}`}
+                className={`grow-x h-full rounded-full ${totalUsed > totalBudget ? "bg-red" : "bg-green"}`}
                 style={{ width: `${Math.min(100, (totalUsed / totalBudget) * 100)}%` }}
               />
             </div>
@@ -51,8 +51,8 @@ export default async function BudgetsPage({ searchParams }: { searchParams: Prom
         <section className="panel sm:p-5">
           <h2 className="section-title mb-1">Money out</h2>
           <ul className="divide-y divide-line">
-            {expense.map((c) => (
-              <Row key={c.id} c={c} spent={spentBy.get(c.id) ?? 0} withBudget />
+            {expense.map((c, i) => (
+              <Row key={c.id} i={i} c={c} spent={spentBy.get(c.id) ?? 0} withBudget />
             ))}
           </ul>
         </section>
@@ -60,8 +60,8 @@ export default async function BudgetsPage({ searchParams }: { searchParams: Prom
         <section className="panel sm:p-5">
           <h2 className="section-title mb-1">Money in</h2>
           <ul className="divide-y divide-line">
-            {income.map((c) => (
-              <Row key={c.id} c={c} spent={spentBy.get(c.id) ?? 0} />
+            {income.map((c, i) => (
+              <Row key={c.id} i={i} c={c} spent={spentBy.get(c.id) ?? 0} />
             ))}
           </ul>
         </section>
@@ -70,10 +70,10 @@ export default async function BudgetsPage({ searchParams }: { searchParams: Prom
   );
 }
 
-function Row({ c, spent, withBudget = false }: { c: Category; spent: number; withBudget?: boolean }) {
+function Row({ c, i, spent, withBudget = false }: { c: Category; i: number; spent: number; withBudget?: boolean }) {
   const over = c.monthly_budget !== null && spent > c.monthly_budget;
   return (
-    <li className={`py-3.5 ${c.archived ? "opacity-50" : ""}`}>
+    <li className={`rise py-3.5 ${c.archived ? "opacity-50" : ""}`} style={{ "--i": Math.min(i, 12), "--base": "100ms" } as React.CSSProperties}>
       <div className="flex items-center gap-3">
         <CatIcon name={c.name} color={c.color} />
         <div className="min-w-0 flex-1">

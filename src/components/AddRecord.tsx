@@ -16,16 +16,16 @@ export function AddButton({ variant }: { variant: "fab" | "sidebar" | "inline" }
       <button
         onClick={open}
         aria-label="Add a record"
-        className="-mt-7 flex h-14 w-14 items-center justify-center rounded-full bg-red text-white shadow-lg shadow-red/30 ring-4 ring-white transition active:scale-95"
+        className="fab-pulse pop relative -mt-7 flex h-14 w-14 items-center justify-center rounded-full bg-red text-white shadow-lg shadow-red/30 ring-4 ring-white transition"
       >
-        <Plus size={26} strokeWidth={2.5} />
+        <Plus size={26} strokeWidth={2.5} className="fab-icon" />
       </button>
     );
   }
   if (variant === "sidebar") {
     return (
-      <button onClick={open} className="btn w-full">
-        <Plus size={18} strokeWidth={2.5} /> Add a record
+      <button onClick={open} className="fab btn w-full">
+        <Plus size={18} strokeWidth={2.5} className="fab-icon" /> Add a record
       </button>
     );
   }
@@ -63,7 +63,7 @@ export default function AddRecordSheet({ bookId, categories }: { bookId: string;
         <RecordForm key={key} bookId={bookId} categories={categories} onDone={done} />
       </Sheet>
       {saved && (
-        <div className="fade-in fixed inset-x-0 bottom-24 z-50 flex justify-center lg:bottom-8" role="status">
+        <div className="toast-in fixed inset-x-0 bottom-24 z-50 flex justify-center lg:bottom-8" role="status">
           <span className="rounded-full bg-brown px-4 py-2 text-sm font-medium text-cream shadow-lg">{saved}</span>
         </div>
       )}

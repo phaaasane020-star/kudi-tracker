@@ -58,15 +58,15 @@ export default async function RecordsPage({ searchParams }: { searchParams: Prom
   return (
     <AppShell path="/transactions" book={book} month={month} categories={categories} title="Records">
       <div className="mx-auto max-w-3xl space-y-4">
-        <form className="flex gap-2">
+        <form className="grid grid-cols-[1fr_auto] gap-2 sm:flex">
           <input type="hidden" name="book" value={book.kind} />
           <input type="hidden" name="month" value={month} />
           {view && <input type="hidden" name="view" value={view} />}
-          <label className="relative flex-1">
+          <label className="relative col-span-2 sm:flex-1">
             <Search size={18} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
             <input name="q" defaultValue={params.q ?? ""} placeholder="Search names and notes" className="field pl-10" />
           </label>
-          <select name="category" defaultValue={category} className="field w-36 sm:w-48" aria-label="Category">
+          <select name="category" defaultValue={category} className="field sm:w-48" aria-label="Category">
             <option value="">All categories</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
@@ -82,13 +82,13 @@ export default async function RecordsPage({ searchParams }: { searchParams: Prom
 
         <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4">
           {VIEWS.map((v) => (
-            <Link key={v.value} href={keep({ view: v.value })} className={`chip ${view === v.value ? "chip-on" : ""}`}>
+            <Link key={v.value} href={keep({ view: v.value })} className={`chip press ${view === v.value ? "chip-on" : ""}`}>
               {v.label}
             </Link>
           ))}
         </div>
 
-        <section className="panel sm:p-5">
+        <section className="rise panel sm:p-5" style={{ "--i": 2 } as React.CSSProperties}>
           <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
             <div>
               <p className="text-sm text-muted">

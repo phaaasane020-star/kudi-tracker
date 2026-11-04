@@ -1,5 +1,5 @@
 import { ArrowDownLeft, ArrowUpRight, ChevronRight } from "lucide-react";
-import Money from "@/components/Money";
+import CountUp from "@/components/CountUp";
 import { categoryIcon } from "@/lib/category-icons";
 import Link from "next/link";
 import { AddButton } from "@/components/AddRecord";
@@ -46,21 +46,23 @@ export default async function Overview({ searchParams }: { searchParams: Promise
       <div className="grid gap-5 lg:grid-cols-[1.15fr_1fr]">
         <div className="space-y-5">
           {/* The month at a glance */}
-          <section className="relative overflow-hidden rounded-[20px] bg-brown p-5 text-cream sm:p-6">
-            <div className="flex items-start justify-between gap-3">
-              <p className="text-[15px] text-cream/75">Spent in {shortMonth(month)}</p>
+          <section className="rise relative isolate overflow-hidden rounded-[20px] bg-brown p-5 text-cream sm:p-6">
+            <div aria-hidden className="float-slow pointer-events-none absolute -z-10 -right-16 -top-20 h-56 w-56 rounded-full bg-red/25 blur-3xl" />
+            <div aria-hidden className="float-slow pointer-events-none absolute -z-10 -bottom-24 left-10 h-48 w-48 rounded-full bg-orange/15 blur-3xl [animation-delay:-3s]" />
+            <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+              <p className="shrink-0 text-[15px] text-cream/75">Spent in {shortMonth(month)}</p>
               {autoOn ? (
                 <span className="flex items-center gap-1.5 text-xs text-cream/60">
-                  <span className="h-1.5 w-1.5 rounded-full bg-orange" /> MoMo synced {timeAgo(sms.last_received_at!)}
+                  <span className="ping h-1.5 w-1.5 rounded-full bg-orange" /> MoMo synced {timeAgo(sms.last_received_at!)}
                 </span>
               ) : null}
             </div>
             <p className="display mt-2 text-[52px] font-bold leading-none sm:text-[64px]">
-              <Money value={spent} />
+              <CountUp value={spent} />
             </p>
 
             {spent > 0 ? (
-              <div className="mt-5 flex h-2.5 gap-[3px] overflow-hidden rounded-full" aria-hidden>
+              <div className="grow-x relative mt-5 flex h-2.5 gap-[3px] overflow-hidden rounded-full" aria-hidden>
                 {rows
                   .filter((r) => r.amount > 0)
                   .map((r) => (
@@ -71,7 +73,7 @@ export default async function Overview({ searchParams }: { searchParams: Promise
               <div className="mt-5 h-2.5 rounded-full bg-cream/10" />
             )}
 
-            <dl className="mt-5 grid grid-cols-3 gap-3 border-t border-cream/10 pt-4 text-sm">
+            <dl className="relative mt-5 grid grid-cols-2 gap-x-3 gap-y-3 border-t border-cream/10 pt-4 text-sm min-[400px]:grid-cols-3">
               <div>
                 <dt className="flex items-center gap-1 text-cream/60">
                   <ArrowDownLeft size={14} className="text-[#4ade80]" /> In
@@ -97,7 +99,8 @@ export default async function Overview({ searchParams }: { searchParams: Promise
           {review > 0 && (
             <Link
               href={link("/transactions", book.kind, month, { view: "review" })}
-              className="flex items-center gap-3 rounded-xl border-l-[3px] border-orange bg-cream px-4 py-3.5 transition hover:bg-[#ffe9c7]"
+              className="rise lift press flex items-center gap-3 rounded-xl border-l-[3px] border-orange bg-cream px-4 py-3.5 hover:bg-[#ffe9c7]"
+              style={{ "--i": 2 } as React.CSSProperties}
             >
               <span className="flex-1 text-[15px]">
                 <span className="font-semibold">
@@ -112,7 +115,8 @@ export default async function Overview({ searchParams }: { searchParams: Promise
           {!sms?.last_received_at && (
             <Link
               href={link("/settings", book.kind, month)}
-              className="flex items-center gap-3 rounded-xl bg-wash px-4 py-3.5 transition hover:bg-cream"
+              className="rise lift press flex items-center gap-3 rounded-xl bg-wash px-4 py-3.5 hover:bg-cream"
+              style={{ "--i": 3 } as React.CSSProperties}
             >
               <span className="flex-1 text-[15px]">
                 <span className="block font-semibold">Record MoMo payments automatically</span>
@@ -122,7 +126,7 @@ export default async function Overview({ searchParams }: { searchParams: Promise
             </Link>
           )}
 
-          <section className="panel sm:p-5">
+          <section className="rise panel sm:p-5" style={{ "--i": 4 } as React.CSSProperties}>
             <div className="mb-3 flex items-baseline justify-between">
               <h2 className="section-title">Day by day</h2>
               <span className="tabular text-sm text-muted">{expenses.length} payments</span>
@@ -130,7 +134,7 @@ export default async function Overview({ searchParams }: { searchParams: Promise
             <DailyChart data={daily} today={todayNum} />
           </section>
 
-          <section className="panel sm:p-5">
+          <section className="rise panel sm:p-5" style={{ "--i": 6 } as React.CSSProperties}>
             <div className="mb-4 flex items-baseline justify-between">
               <h2 className="section-title">Where it went</h2>
               <Link href={link("/categories", book.kind, month)} className="text-sm font-medium text-red hover:underline">
@@ -141,7 +145,7 @@ export default async function Overview({ searchParams }: { searchParams: Promise
               <p className="py-4 text-[15px] text-muted">Your categories show up here after your first payment.</p>
             ) : (
               <ul className="space-y-4">
-                {rows.map((r) => {
+                {rows.map((r, i) => {
                   const over = r.budget !== null && r.amount > r.budget;
                   const pct = r.budget ? Math.min(100, (r.amount / r.budget) * 100) : spent ? (r.amount / spent) * 100 : 0;
                   return (
@@ -157,7 +161,7 @@ export default async function Overview({ searchParams }: { searchParams: Promise
                         </span>
                       </div>
                       <div className="ml-[34px] h-1.5 overflow-hidden rounded-full bg-wash">
-                        <div className="h-full rounded-full" style={{ width: `${pct}%`, background: over ? "#ef4444" : r.color }} />
+                        <div className="grow-x h-full rounded-full" style={{ width: `${pct}%`, background: over ? "#ef4444" : r.color, "--i": i + 4 } as React.CSSProperties} />
                       </div>
                       {over && <p className="ml-[34px] mt-1 text-[13px] font-medium text-red">{cedi(r.amount - r.budget!)} over budget</p>}
                     </li>
@@ -168,7 +172,7 @@ export default async function Overview({ searchParams }: { searchParams: Promise
           </section>
         </div>
 
-        <section className="panel h-fit sm:p-5">
+        <section className="rise panel h-fit sm:p-5" style={{ "--i": 3 } as React.CSSProperties}>
           <div className="mb-3 flex items-baseline justify-between">
             <h2 className="section-title">Latest</h2>
             <Link href={link("/transactions", book.kind, month)} className="text-sm font-medium text-red hover:underline">

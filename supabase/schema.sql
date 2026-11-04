@@ -97,6 +97,11 @@ begin
     raise exception 'Not signed in';
   end if;
 
+  -- The first account to open the app becomes its owner (sees the Security page).
+  if to_regclass('public.app_owner') is not null then
+    insert into app_owner (user_id) values (uid) on conflict (id) do nothing;
+  end if;
+
   if exists (select 1 from books where user_id = uid) then
     return;
   end if;
@@ -211,3 +216,50 @@ create policy "own sms settings" on public.sms_settings
     and (book_id is null or exists (select 1 from public.books b where b.id = book_id and b.user_id = auth.uid()))
     and char_length(token) >= 32
   );
+
+-- ============ SECURITY LOG (added Nov 2026) ============
+-- Visits, sign-in attempts and other security events. Only the app writes here
+-- (with the service key); only the account owner can read it.
+
+create table if not exists public.security_events (
+  id          bigint generated always as identity primary key,
+  kind        text not null check (kind in (
+                'visit', 'signin_success', 'signin_failed', 'signin_blocked', 'signup',
+                'password_reset_requested', 'password_changed', 'signout_all', 'sms_bad_token')),
+  email       text,
+  user_id     uuid,
+  visitor_id  text,
+  path        text,
+  ip          text,
+  country     text,
+  city        text,
+  user_agent  text,
+  created_at  timestamptz not null default now()
+);
+create index if not exists security_events_kind_time_idx on public.security_events (kind, created_at desc);
+create index if not exists security_events_ip_time_idx on public.security_events (ip, created_at desc);
+create index if not exists security_events_email_time_idx on public.security_events (email, created_at desc);
+
+-- The owner is the first account ever created on this project (you).
+create or replace function public.is_owner()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public, auth
+as $$
+  select auth.uid() is not null
+     and auth.uid() = (select id from auth.users order by created_at asc limit 1);
+$$;
+revoke all on function public.is_owner() from public, anon;
+grant execute on function public.is_owner() to authenticated;
+
+alter table public.security_events enable row level security;
+
+drop policy if exists "owner reads security log" on public.security_events;
+create policy "owner reads security log" on public.security_events
+  for select using (public.is_owner());
+
+drop policy if exists "owner trims security log" on public.security_events;
+create policy "owner trims security log" on public.security_events
+  for delete using (public.is_owner());

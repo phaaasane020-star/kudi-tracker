@@ -128,7 +128,7 @@ export default function RecordForm({
         </div>
       </fieldset>
 
-      <div className="grid grid-cols-[1fr_9.5rem] gap-3">
+      <div className="grid gap-3 min-[400px]:grid-cols-[1fr_9.5rem]">
         <label className="block">
           <span className="mb-1.5 block text-sm text-muted">Note</span>
           <input

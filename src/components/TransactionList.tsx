@@ -33,7 +33,7 @@ export default function TransactionList({
   return (
     <>
       <div className="space-y-5">
-        {[...groups.entries()].map(([date, items]) => {
+        {(() => { let row = 0; return [...groups.entries()].map(([date, items]) => {
           const out = items.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
           return (
             <section key={date}>
@@ -48,10 +48,10 @@ export default function TransactionList({
                   const title = t.counterparty || t.description || cat?.name || "Record";
                   const method = t.source === "sms" ? "MoMo, auto" : paymentLabel(t.payment_method);
                   return (
-                    <li key={t.id} className="border-b border-line/70 last:border-0">
+                    <li key={t.id} className="rise border-b border-line/70 last:border-0" style={{ "--i": Math.min(row++, 12), "--base": "120ms" } as React.CSSProperties}>
                       <button
                         onClick={() => setEditing(t)}
-                        className="-mx-2 flex w-[calc(100%+1rem)] items-center gap-3 rounded-xl px-2 py-3 text-left transition hover:bg-wash"
+                        className="press -mx-2 flex w-[calc(100%+1rem)] items-center gap-3 rounded-xl px-2 py-3 text-left hover:bg-wash"
                       >
                         <span
                           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
@@ -81,7 +81,7 @@ export default function TransactionList({
               </ul>
             </section>
           );
-        })}
+        }); })()}
       </div>
 
       <Sheet open={!!editing} onClose={close} title={editing?.type === "income" ? "Money in" : "Money out"}>

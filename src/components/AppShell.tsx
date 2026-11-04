@@ -1,11 +1,12 @@
-import { ChevronLeft, ChevronRight, LayoutDashboard, LogOut, PieChart, ReceiptText, Smartphone } from "lucide-react";
+import { ChevronLeft, ChevronRight, LayoutDashboard, LogOut, PieChart, ReceiptText, ShieldCheck, Smartphone } from "lucide-react";
 import Link from "next/link";
 import { signOut } from "@/app/actions";
+import Footer from "@/components/Footer";
 import AddRecordSheet, { AddButton } from "@/components/AddRecord";
 import { currentMonth, monthLabel, nextMonth, prevMonth } from "@/lib/format";
 import type { Book, Category } from "@/lib/types";
 
-export type AppPath = "/" | "/transactions" | "/categories" | "/settings";
+export type AppPath = "/" | "/transactions" | "/categories" | "/settings" | "/security";
 
 const NAV: { path: AppPath; label: string; short: string; icon: typeof LayoutDashboard }[] = [
   { path: "/", label: "Overview", short: "Home", icon: LayoutDashboard },
@@ -13,6 +14,7 @@ const NAV: { path: AppPath; label: string; short: string; icon: typeof LayoutDas
   { path: "/categories", label: "Budgets", short: "Budgets", icon: PieChart },
   { path: "/settings", label: "Auto MoMo", short: "MoMo", icon: Smartphone },
 ];
+const SIDEBAR = [...NAV, { path: "/security" as AppPath, label: "Security", short: "Security", icon: ShieldCheck }];
 
 export function link(path: string, kind: string, month: string, extra?: Record<string, string>) {
   return `${path}?${new URLSearchParams({ book: kind, month, ...extra })}`;
@@ -58,7 +60,10 @@ export default function AppShell({
       <Link href={link(path, book.kind, prevMonth(month))} className="rounded-full p-2 text-muted hover:bg-wash hover:text-ink" aria-label="Previous month">
         <ChevronLeft size={20} />
       </Link>
-      <span className="min-w-[8.5rem] text-center text-[15px] font-semibold">{monthLabel(month)}</span>
+      <span className="min-w-[5.5rem] text-center text-sm font-semibold sm:min-w-[8.5rem] sm:text-[15px]">
+        <span className="sm:hidden">{monthShort(month)}</span>
+        <span className="hidden sm:inline">{monthLabel(month)}</span>
+      </span>
       {atCurrent ? (
         <span className="p-2 text-line" aria-hidden>
           <ChevronRight size={20} />
@@ -78,11 +83,11 @@ export default function AppShell({
         <Brand />
         <div className="mt-6">{bookSwitch}</div>
         <nav className="mt-6 space-y-1">
-          {NAV.map((n) => (
+          {SIDEBAR.map((n) => (
             <Link
               key={n.path}
               href={link(n.path, book.kind, month)}
-              className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] transition ${
+              className={`press flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] ${
                 path === n.path ? "bg-white font-semibold text-ink shadow-sm" : "text-muted hover:bg-white/60 hover:text-ink"
               }`}
             >
@@ -101,7 +106,7 @@ export default function AppShell({
         </form>
       </aside>
 
-      <div className="min-w-0 pb-28 lg:pb-10">
+      <div className="flex min-h-dvh min-w-0 flex-col">
         {/* Top bar */}
         <header className="sticky top-0 z-30 border-b border-line/70 bg-white/90 backdrop-blur-lg">
           <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3 lg:px-8">
@@ -109,12 +114,21 @@ export default function AppShell({
               <Brand compact />
             </div>
             <h1 className="hidden text-2xl font-bold lg:block">{title}</h1>
-            <div className="lg:hidden">{bookSwitch}</div>
+            <div className="flex items-center gap-1.5 lg:hidden">
+              {bookSwitch}
+              <Link
+                href={link("/security", book.kind, month)}
+                aria-label="Security"
+                className={`press rounded-full p-2 ${path === "/security" ? "bg-cream text-red" : "text-muted hover:bg-wash hover:text-ink"}`}
+              >
+                <ShieldCheck size={20} />
+              </Link>
+            </div>
             <div className="hidden lg:block">{monthNav}</div>
           </div>
           {showMonth && (
-            <div className="mx-auto flex max-w-5xl items-center justify-between px-2 pb-2 lg:hidden">
-              <h1 className="pl-2 text-xl font-bold">{title}</h1>
+            <div className="mx-auto flex max-w-5xl items-center justify-between gap-2 px-2 pb-2 lg:hidden">
+              <h1 className="truncate pl-2 text-xl font-bold">{title}</h1>
               {monthNav}
             </div>
           )}
@@ -125,7 +139,10 @@ export default function AppShell({
           )}
         </header>
 
-        <main className="mx-auto max-w-5xl px-4 py-5 lg:px-8 lg:py-8">{children}</main>
+        <main className="page-enter mx-auto w-full max-w-5xl flex-1 px-4 py-5 lg:px-8 lg:py-8">{children}</main>
+        <div className="pb-[calc(5.5rem+env(safe-area-inset-bottom))] lg:pb-0">
+          <Footer />
+        </div>
       </div>
 
       {/* Bottom tabs on phones */}
@@ -150,9 +167,10 @@ export default function AppShell({
 
 function Tab({ n, active, href }: { n: (typeof NAV)[number]; active: boolean; href: string }) {
   return (
-    <Link href={href} className={`flex flex-col items-center gap-1 py-1 text-[11px] font-medium ${active ? "text-red" : "text-muted"}`}>
+    <Link href={href} className={`press relative flex flex-col items-center gap-1 py-1 text-[11px] font-medium ${active ? "tab-active text-red" : "text-muted"}`}>
       <n.icon size={22} strokeWidth={active ? 2.4 : 1.8} />
       {n.short}
+      <span className={`tab-dot absolute -bottom-1 h-1 w-1 rounded-full bg-red ${active ? "scale-100 opacity-100" : "scale-0 opacity-0"}`} />
     </Link>
   );
 }
@@ -164,9 +182,16 @@ function Brand({ compact = false }: { compact?: boolean }) {
       {!compact && (
         <span className="leading-tight">
           <span className="block text-[17px] font-bold">Kudi Tracker</span>
-          <span className="block text-xs text-muted">by Paa Asane Technologies</span>
+          <a href="https://paatech.vercel.app" target="_blank" rel="noopener noreferrer" className="block text-xs text-muted hover:text-red hover:underline">
+            by Paa Asane Technologies
+          </a>
         </span>
       )}
     </div>
   );
+}
+
+function monthShort(month: string) {
+  const [y, m] = month.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString("en-GB", { month: "short", year: "numeric", timeZone: "UTC" });
 }
