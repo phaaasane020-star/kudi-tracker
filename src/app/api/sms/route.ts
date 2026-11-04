@@ -103,7 +103,7 @@ async function readBody(request: NextRequest): Promise<{ text: string; sender: s
 
   return {
     raw,
-    text: (pick("text", "message", "body", "msg", "content", "sms") ?? "").slice(0, 2000),
+    text: (pick("text", "message", "body", "msg", "content", "sms") ?? anyMessage(obj) ?? "").slice(0, 2000),
     sender: pick("from", "sender", "address", "phone", "number"),
   };
 }
@@ -130,4 +130,11 @@ function asText(v: unknown): string | null {
     }
   }
   return null;
+}
+
+/** If the keys were left blank or misnamed, find the value that looks like the SMS (it mentions GHS). */
+function anyMessage(obj: Record<string, unknown>): string | null {
+  const values = Object.values(obj).map(asText).filter((v): v is string => !!v);
+  const withMoney = values.filter((v) => /GHS|GH₵|GHC/i.test(v)).sort((a, b) => b.length - a.length);
+  return withMoney[0] ?? null;
 }
