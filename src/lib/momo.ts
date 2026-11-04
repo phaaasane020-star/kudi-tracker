@@ -40,10 +40,20 @@ function first(text: string, patterns: RegExp[]): RegExpMatchArray | null {
 }
 
 function provider(text: string, sender?: string): ParsedMomo["provider"] {
-  const s = `${sender ?? ""} ${text}`.toLowerCase();
-  if (/telecel|t-?cash|vodafone/.test(s)) return "Telecel Cash";
-  if (/airteltigo|at ?money|tigo/.test(s)) return "AT Money";
-  if (/mobilemoney|mtn|momo/.test(s)) return "MTN MoMo";
+  // The sender name is the surest sign of whose wallet this is.
+  const from = (sender ?? "").toLowerCase();
+  if (/telecel|t-?cash|vodafone/.test(from)) return "Telecel Cash";
+  if (/airteltigo|at ?money|tigo/.test(from)) return "AT Money";
+  if (/mobilemoney|mtn|momo/.test(from)) return "MTN MoMo";
+  // Otherwise look at how the message talks about *your* wallet, since transfers
+  // between networks mention the other network too ("to TELECEL PUSH", "from MTN MOBILE MONEY").
+  const t = text.toLowerCase();
+  if (/telecel cash balance|t-?cash balance|vodafone cash balance/.test(t)) return "Telecel Cash";
+  if (/at money balance|airteltigo money balance/.test(t)) return "AT Money";
+  if (/mtnmymomo|momo app|mobile money|current balance|financial transaction id/.test(t)) return "MTN MoMo";
+  if (/telecel|t-?cash|vodafone/.test(t)) return "Telecel Cash";
+  if (/airteltigo|at ?money|tigo/.test(t)) return "AT Money";
+  if (/mtn|momo/.test(t)) return "MTN MoMo";
   return "Mobile Money";
 }
 
@@ -76,7 +86,7 @@ export function parseMomoSms(textRaw: string, sender?: string): ParseResult {
   if (/\b(reversed|reversal)\b/i.test(text)) {
     return { ok: false, reason: "Reversal (add it yourself if needed)" };
   }
-  if (/\b(otp|verification code|one[- ]time)\b/i.test(text)) {
+  if (/\b(?:otp|verification code|one[- ]time (?:code|password|pin))\b[^.]{0,30}?\b(?:is|:)\s*\d{4,8}\b/i.test(text) || /^\s*\d{4,8}\s+is your\b/i.test(text)) {
     return { ok: false, reason: "Code message, not a payment" };
   }
 
@@ -147,10 +157,17 @@ export function parseMomoSms(textRaw: string, sender?: string): ParseResult {
       /\btxn ?id\s*:?\s*([A-Za-z0-9.]{5,})/i,
       /\bref(?:erence)? ?(?:no|number|id)\s*:?\s*([A-Za-z0-9]{6,})/i,
       /^([A-Za-z0-9]{8,})\s+confirmed\b/i,
+      // MTN airtime and bill messages: "Ref: 92843113633."
+      /\bref\s*:\s*(\d{8,})\b/i,
     ])?.[1]?.replace(/\.+$/, "") ?? null;
 
   let counterparty: string | null = null;
-  if (kind === "received" || kind === "cashin") {
+  const crossNetwork = text.match(
+    new RegExp(`\\btransfer\\s+${kind === "received" || kind === "cashin" ? "from" : "to"}\\s*:\\s*[+\\dX*]{6,}\\s*-\\s*(.+?)(?=\\s+on\\s+\\d{4}-|\\s*[.,;]\\s|$)`, "i")
+  );
+  if (crossNetwork) {
+    counterparty = cleanName(crossNetwork[1]);
+  } else if (kind === "received" || kind === "cashin") {
     counterparty = cleanName(text.match(new RegExp(`\\bfrom\\s+(.+?)${NAME_END}`, "i"))?.[1]);
   } else {
     const after = text.slice((amountMatch.index ?? 0) + amountMatch[0].length);
@@ -161,10 +178,21 @@ export function parseMomoSms(textRaw: string, sender?: string): ParseResult {
   if (!counterparty && /airtime/i.test(text)) counterparty = "Airtime";
   if (!counterparty && /\bbundle|data\b/i.test(text)) counterparty = "Data bundle";
 
-  const noteRaw = text.match(
-    /\breference\s*:\s*(.*?)(?=\s*\.\s|\s+(?:transaction|trans|financial|your|current|fee|tax|available)\b|$)/i
-  )?.[1];
-  const note = noteRaw && !/^[\d.\-]*$/.test(noteRaw.trim()) && noteRaw.trim().length <= 120 ? noteRaw.trim() : null;
+  const noteRaw =
+    text.match(/\bref\s*:\s*(.*?)(?=\s*\.(?:\s|$)|\s+(?:stay alert|transaction|your|current|fee|tax)\b|$)/i)?.[1] ??
+    text.match(/(?<!transaction )\breference\s*:\s*(?!transfer\b)(.*?)(?=\s*\.\s|\s+(?:transaction|trans|financial|your|current|fee|tax|available)\b|$)/i)?.[1];
+  let note = noteRaw && !/^[\d.\-]*$/.test(noteRaw.trim()) && noteRaw.trim().length <= 120 ? noteRaw.trim() : null;
+
+  // Transfers to another network go through a gateway ("TELECEL PUSH", "AT PUSH"),
+  // and MTN tucks the real person into the reference: "ABRAHAM ARTHUR,233202342512,your note".
+  const viaGateway = /\b(push|interop\w*|ghipss|gip)\b/i.test(counterparty ?? "");
+  // Bank transfers do the same with a masked account number: "KWAKU DUAH ,14xxxxxx15,your note".
+  const packed = note?.match(/^([^,\d][^,]{1,60}?)\s*,\s*\+?[\dXx*]{6,16}\s*(?:,\s*(.*))?$/);
+  const sameName = packed && counterparty && cleanName(packed[1])?.toLowerCase() === counterparty.toLowerCase();
+  if (packed && (viaGateway || !counterparty || sameName)) {
+    counterparty = cleanName(packed[1]) ?? counterparty;
+    note = packed[2]?.trim() || null; // the phone or account number is left out on purpose
+  }
 
   const date = text.match(/\b(20\d{2}-\d{2}-\d{2})\b/)?.[1] ?? dmyToIso(text.match(/\b(\d{2})\/(\d{2})\/(20\d{2})\b/));
 
