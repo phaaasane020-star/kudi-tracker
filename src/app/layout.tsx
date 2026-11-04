@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Intro from "@/components/Intro";
 import VisitTracker from "@/components/VisitTracker";
-import { INTRO_FLAG } from "@/lib/intro";
 
 export const metadata: Metadata = {
   title: "Kudi Tracker",
@@ -22,14 +21,6 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        {/* Hides the intro instantly if it already played in this session, so it never flashes. */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `try{if(sessionStorage.getItem("${INTRO_FLAG}")==="1")document.documentElement.dataset.intro="done"}catch(e){}`,
-          }}
-        />
-      </head>
       <body className="min-h-dvh font-sans antialiased">
         <Intro />
         <VisitTracker />

@@ -37,16 +37,9 @@ export default function Intro() {
     setStage("splash");
   }, []);
 
-  // Decide on first load: already played in this session, or play now.
+  // Plays every time the app is opened (each fresh launch or full page load).
   useEffect(() => {
-    let played = false;
-    try {
-      played = sessionStorage.getItem(INTRO_FLAG) === "1";
-    } catch {
-      /* private mode: play it */
-    }
-    if (played) setStage("hidden");
-    else play();
+    play();
   }, [play]);
 
   // Coming back to the app after a while plays it again.
@@ -104,9 +97,6 @@ export default function Intro() {
         <p className="rise mt-1 text-white/80" style={{ ["--i" as string]: 6 }}>
           Know where every cedi goes
         </p>
-        <button onClick={finish} className="safe-bottom absolute bottom-6 text-sm font-medium text-white/80">
-          Skip
-        </button>
       </div>
     );
   }

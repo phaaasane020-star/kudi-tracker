@@ -148,6 +148,26 @@ export default function Tour() {
     };
   }, [open, i, step.target]);
 
+  // Freeze the page behind the tour (the tour itself can still scroll it into place).
+  useEffect(() => {
+    if (!open) return;
+    const html = document.documentElement;
+    const before = { overflow: html.style.overflow, touch: html.style.touchAction, overscroll: html.style.overscrollBehavior };
+    html.style.overflow = "hidden";
+    html.style.touchAction = "none";
+    html.style.overscrollBehavior = "none";
+    const block = (e: Event) => e.preventDefault();
+    document.addEventListener("touchmove", block, { passive: false });
+    document.addEventListener("wheel", block, { passive: false });
+    return () => {
+      html.style.overflow = before.overflow;
+      html.style.touchAction = before.touch;
+      html.style.overscrollBehavior = before.overscroll;
+      document.removeEventListener("touchmove", block);
+      document.removeEventListener("wheel", block);
+    };
+  }, [open]);
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -184,7 +204,7 @@ export default function Tour() {
   const last = i === STEPS.length - 1;
 
   return (
-    <div className="fixed inset-0 z-[65]" role="dialog" aria-modal="true" aria-label="How to use Kudi">
+    <div className="fixed inset-0 z-[65] touch-none overscroll-none" role="dialog" aria-modal="true" aria-label="How to use Kudi">
       {/* Dim everything except the highlighted part. */}
       {hole ? (
         <div

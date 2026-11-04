@@ -9,6 +9,8 @@ export type SmsOutcome = {
   status: "recorded" | "skipped" | "duplicate" | "error";
   detail: string;
   transactionId?: string;
+  /** An offer, code or alert rather than a transaction: not worth listing. */
+  noise?: boolean;
   /** Where the record lives, so the app can link straight to it. */
   where?: { date: string; book: "personal" | "business"; bookName: string };
 };
@@ -26,6 +28,8 @@ export async function recordSms(
   sender: string | null
 ): Promise<SmsOutcome> {
   const outcome = await process(supabase, userId, bookId, body, sender);
+  // Offers and alerts are ignored quietly so they don't clutter "Messages received".
+  if (outcome.noise && sender !== "pasted") return outcome;
   await supabase.from("sms_inbox").insert({
     user_id: userId,
     sender,
@@ -51,7 +55,7 @@ async function process(
   sender: string | null
 ): Promise<SmsOutcome> {
   const parsed = parseMomoSms(body, sender ?? undefined);
-  if (!parsed.ok) return { status: "skipped", detail: parsed.reason };
+  if (!parsed.ok) return { status: "skipped", detail: parsed.reason, noise: parsed.noise };
   const p = parsed.data;
 
   if (p.kind === "cashin") {

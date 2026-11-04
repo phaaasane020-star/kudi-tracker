@@ -23,7 +23,11 @@ export type ParsedMomo = {
   balance: number | null;
 };
 
-export type ParseResult = { ok: true; data: ParsedMomo } | { ok: false; reason: string };
+/** noise: true means it isn't about money moving at all (an offer, a code, an alert), so it isn't worth listing. */
+export type ParseResult = { ok: true; data: ParsedMomo } | { ok: false; reason: string; noise?: boolean };
+
+// Wording used in offers, adverts and alerts rather than real transactions.
+const PROMO = /\b(bonus|promo(?:tion)?|offer|stand a chance|win(?:ner|ners)?|qwik ?loan|xpress ?loan|ahomka|loan of|you qualify|eligible|apply now|subscribe|discount|survey|congratulations|reward|cash ?back|dial \*|\*\d{3,}#)/i;
 
 const CUR = String.raw`(?:GHS|GH₵|GH¢|GHC|¢|₵)`;
 const NUM = String.raw`(\d{1,3}(?:,\d{3})+(?:\.\d{1,2})?|\d+(?:\.\d{1,2})?)`;
@@ -77,8 +81,8 @@ const NAME_END = String.raw`(?=\s+(?:\+?233|0)\d{9}\b|\s*[.,;]\s|\s*[.,;]?$|\s+(
 
 export function parseMomoSms(textRaw: string, sender?: string): ParseResult {
   const text = textRaw.replace(/\s+/g, " ").trim();
-  if (!text) return { ok: false, reason: "Empty message" };
-  if (!new RegExp(CUR, "i").test(text)) return { ok: false, reason: "No cedi amount in the message" };
+  if (!text) return { ok: false, reason: "Empty message", noise: true };
+  if (!new RegExp(CUR, "i").test(text)) return { ok: false, reason: "Not a money message", noise: true };
 
   if (/\b(failed|unsuccessful|not successful|insufficient|declined|cancelled|could not be completed)\b/i.test(text)) {
     return { ok: false, reason: "Failed or declined transaction" };
@@ -87,7 +91,7 @@ export function parseMomoSms(textRaw: string, sender?: string): ParseResult {
     return { ok: false, reason: "Reversal (add it yourself if needed)" };
   }
   if (/\b(?:otp|verification code|one[- ]time (?:code|password|pin))\b[^.]{0,30}?\b(?:is|:)\s*\d{4,8}\b/i.test(text) || /^\s*\d{4,8}\s+is your\b/i.test(text)) {
-    return { ok: false, reason: "Code message, not a payment" };
+    return { ok: false, reason: "Code message, not a payment", noise: true };
   }
 
   let kind: MomoKind | null = null;
@@ -125,7 +129,7 @@ export function parseMomoSms(textRaw: string, sender?: string): ParseResult {
   else if (received) [kind, amountMatch] = ["received", received];
   else if (sent) [kind, amountMatch] = ["sent", sent];
 
-  if (!kind || !amountMatch) return { ok: false, reason: "Not a payment or transfer message" };
+  if (!kind || !amountMatch) return { ok: false, reason: "Not a payment or transfer message", noise: true };
 
   const amount = money(amountMatch[1]);
   if (!Number.isFinite(amount) || amount <= 0) return { ok: false, reason: "Could not read the amount" };
@@ -197,6 +201,13 @@ export function parseMomoSms(textRaw: string, sender?: string): ParseResult {
   }
 
   const date = text.match(/\b(20\d{2}-\d{2}-\d{2})\b/)?.[1] ?? dmyToIso(text.match(/\b(\d{2})\/(\d{2})\/(20\d{2})\b/));
+
+  // Real transactions always carry proof: a transaction ID, a new balance, or "Confirmed"/"completed".
+  // Offers like "Get GHS 5 bonus when you buy a bundle" have none of these.
+  const proof = !!txnId || Number.isFinite(balance) || /\b(confirmed|has been completed|successfully|financial transaction)\b/i.test(text);
+  if (!proof || (PROMO.test(text) && !txnId)) {
+    return { ok: false, reason: "Offer or alert, not a transaction", noise: true };
+  }
 
   return {
     ok: true,
