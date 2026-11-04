@@ -1,4 +1,5 @@
-import { Check, KeyRound, LogOut, MapPin, ShieldAlert, ShieldCheck, X } from "lucide-react";
+import { redirect } from "next/navigation";
+import { Check, Eye, KeyRound, Lock, LogIn, LogOut, MailQuestion, MapPin, ShieldAlert, ShieldCheck, UserCheck, UserMinus, UserPlus, UserX, X } from "lucide-react";
 import Link from "next/link";
 import { signOutEverywhere } from "@/app/auth-actions";
 import AppShell from "@/components/AppShell";
@@ -40,13 +41,7 @@ export default async function SecurityPage({ searchParams }: { searchParams: Pro
   const categories = await loadCategories(supabase, book.id);
   const { data: owner } = await supabase.rpc("is_owner");
 
-  if (!owner) {
-    return (
-      <AppShell path="/security" book={book} month={month} categories={categories} title="Security" showMonth={false}>
-        <p className="text-[15px] text-muted">Only the owner of this Kudi Tracker can see its security activity.</p>
-      </AppShell>
-    );
-  }
+  if (!owner || !access.isOwner) redirect("/");
 
   // Keep the log small: visits older than 90 days are removed.
   await supabase.from("security_events").delete().eq("kind", "visit").lt("created_at", new Date(Date.now() - 90 * 86400_000).toISOString());
@@ -197,17 +192,20 @@ export default async function SecurityPage({ searchParams }: { searchParams: Pro
           {e.length === 0 ? (
             <p className="py-4 text-[15px] text-muted">Nothing yet. Sign-in attempts will show up here.</p>
           ) : (
-            <ul>
+            <ul className="boxed">
               {e.map((x, n) => (
-                <li key={x.id} className="row-in border-b border-line/70 py-3 last:border-0" style={{ ["--i" as string]: Math.min(n, 12) }}>
-                  <div className="flex items-start justify-between gap-3">
-                    <span className="min-w-0">
-                      <span className={`block text-[15px] font-medium ${BAD.has(x.kind) ? "text-red-dark" : ""}`}>{LABEL[x.kind] ?? x.kind}</span>
-                      <span className="block truncate text-[13px] text-muted">{x.email ?? (x.kind === "sms_bad_token" ? "Auto MoMo link" : "No email")}</span>
-                    </span>
-                    <span className="shrink-0 text-xs text-muted">{timeAgo(x.created_at)}</span>
+                <li key={x.id} className="row-in flex gap-3 px-4 py-3.5" style={{ ["--i" as string]: Math.min(n, 12) }}>
+                  <EventIcon kind={x.kind} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="min-w-0">
+                        <span className={`block text-[15px] font-medium ${BAD.has(x.kind) ? "text-red-dark" : ""}`}>{LABEL[x.kind] ?? x.kind}</span>
+                        <span className="block truncate text-[13px] text-muted">{x.email ?? (x.kind === "sms_bad_token" ? "Auto MoMo link" : "No email")}</span>
+                      </span>
+                      <span className="shrink-0 text-xs text-muted">{timeAgo(x.created_at)}</span>
+                    </div>
+                    <Where city={x.city} country={x.country} ua={x.user_agent} ip={x.ip} />
                   </div>
-                  <Where city={x.city} country={x.country} ua={x.user_agent} ip={x.ip} />
                 </li>
               ))}
             </ul>
@@ -219,10 +217,13 @@ export default async function SecurityPage({ searchParams }: { searchParams: Pro
           {v.length === 0 ? (
             <p className="py-4 text-[15px] text-muted">Visits to your app will show up here.</p>
           ) : (
-            <ul>
+            <ul className="boxed">
               {v.slice(0, 15).map((x, n) => (
-                <li key={x.created_at + n} className="flex items-start justify-between gap-3 border-b border-line/70 py-3 last:border-0">
-                  <span className="min-w-0">
+                <li key={x.created_at + n} className="row-in flex items-start gap-3 px-4 py-3.5" style={{ ["--i" as string]: Math.min(n, 12) }}>
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-wash text-muted">
+                    <Eye size={16} />
+                  </span>
+                  <span className="min-w-0 flex-1">
                     <span className="block truncate text-[15px] font-medium">{pageName(x.path)}</span>
                     <Where city={x.city} country={x.country} ua={x.user_agent} />
                   </span>
@@ -273,4 +274,28 @@ function pageName(path: string | null) {
     "/reset": "Change password",
   };
   return names[path ?? ""] ?? path ?? "Page";
+}
+
+const EVENT_ICONS: Record<string, { icon: typeof Check; tone: string }> = {
+  signin_success: { icon: LogIn, tone: "bg-green/10 text-green" },
+  google_signin: { icon: LogIn, tone: "bg-green/10 text-green" },
+  signin_failed: { icon: X, tone: "bg-red/10 text-red" },
+  signin_blocked: { icon: Lock, tone: "bg-red/10 text-red" },
+  signup: { icon: UserPlus, tone: "bg-cream text-orange" },
+  password_reset_requested: { icon: MailQuestion, tone: "bg-cream text-orange" },
+  password_changed: { icon: KeyRound, tone: "bg-wash text-ink" },
+  signout_all: { icon: LogOut, tone: "bg-wash text-ink" },
+  sms_bad_token: { icon: ShieldAlert, tone: "bg-red/10 text-red" },
+  member_approved: { icon: UserCheck, tone: "bg-green/10 text-green" },
+  member_declined: { icon: UserX, tone: "bg-wash text-muted" },
+  member_removed: { icon: UserMinus, tone: "bg-wash text-muted" },
+};
+
+function EventIcon({ kind }: { kind: string }) {
+  const e = EVENT_ICONS[kind] ?? { icon: ShieldCheck, tone: "bg-wash text-muted" };
+  return (
+    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${e.tone}`}>
+      <e.icon size={16} strokeWidth={2.2} />
+    </span>
+  );
 }

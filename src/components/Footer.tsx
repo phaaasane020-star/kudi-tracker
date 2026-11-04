@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-export default function Footer({ signedIn = true, tone = "light" }: { signedIn?: boolean; tone?: "light" | "plain" }) {
+export default function Footer({ signedIn = true, owner = false, tone = "light" }: { signedIn?: boolean; owner?: boolean; tone?: "light" | "plain" }) {
   const year = new Date().getFullYear();
   return (
     <footer className={`border-t border-line ${tone === "light" ? "bg-wash" : ""}`}>
@@ -20,9 +20,11 @@ export default function Footer({ signedIn = true, tone = "light" }: { signedIn?:
         <nav className="flex flex-wrap gap-x-5 gap-y-2 text-muted sm:justify-end">
           {signedIn ? (
             <>
-              <Link href="/security" className="hover:text-ink">
-                Security
-              </Link>
+              {owner && (
+                <Link href="/security" className="hover:text-ink">
+                  Security
+                </Link>
+              )}
               <Link href="/settings" className="hover:text-ink">
                 Auto MoMo
               </Link>

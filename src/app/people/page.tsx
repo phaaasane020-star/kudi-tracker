@@ -68,7 +68,7 @@ function Group({ title, i, children }: { title: string; i: number; children: Rea
   return (
     <section className="panel rise sm:p-5" style={{ ["--i" as string]: i }}>
       <h2 className="section-title mb-2">{title}</h2>
-      <ul>{children}</ul>
+      <ul className="boxed">{children}</ul>
     </section>
   );
 }
@@ -76,7 +76,7 @@ function Group({ title, i, children }: { title: string; i: number; children: Rea
 function Row({ m, n, note, children }: { m: Member; n: number; note: string; children?: React.ReactNode }) {
   const initial = (m.email ?? "?").charAt(0).toUpperCase();
   return (
-    <li className="row-in flex flex-wrap items-center gap-3 border-b border-line/70 py-3.5 last:border-0" style={{ ["--i" as string]: n }}>
+    <li className="row-in flex flex-wrap items-center gap-3 px-4 py-3.5" style={{ ["--i" as string]: n }}>
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brown text-[15px] font-semibold text-cream">{initial}</span>
       <span className="min-w-0 flex-1">
         <span className="block truncate text-[15px] font-medium">{m.email ?? "No email"}</span>

@@ -73,6 +73,17 @@ body {
     @apply bg-white max-sm:border-t max-sm:border-line max-sm:pt-5 sm:rounded-2xl sm:border sm:border-line;
   }
 
+  /* A closed box around a list of activity: hairlines between rows, no gaps. */
+  .boxed {
+    @apply overflow-hidden rounded-2xl border border-line bg-white;
+  }
+  .boxed > li {
+    @apply border-b border-line/70 last:border-b-0;
+  }
+  .boxed-head {
+    @apply flex items-baseline justify-between border-b border-line/70 bg-wash/70 px-4 py-2.5 text-[13px];
+  }
+
   .section-title {
     @apply text-[17px] font-semibold;
   }

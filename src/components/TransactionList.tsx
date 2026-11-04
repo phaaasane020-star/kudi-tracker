@@ -37,21 +37,21 @@ export default function TransactionList({
           const out = items.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
           return (
             <section key={date}>
-              <div className="mb-0.5 flex items-baseline justify-between text-[13px]">
-                <h3 className="font-semibold text-muted">{dateLabel(date)}</h3>
-                {dayTotals && out > 0 && <span className="tabular text-muted">{cedi(out)} out</span>}
-              </div>
-              <ul>
+              <ul className="boxed">
+                <li className="boxed-head">
+                  <h3 className="font-semibold text-ink">{dateLabel(date)}</h3>
+                  {dayTotals && out > 0 && <span className="tabular text-muted">{cedi(out)} out</span>}
+                </li>
                 {items.map((t) => {
                   const cat = t.category_id ? byId.get(t.category_id) : undefined;
                   const Icon = categoryIcon(cat?.name, t.type);
                   const title = t.counterparty || t.description || cat?.name || "Record";
                   const method = t.source === "sms" ? "MoMo, auto" : paymentLabel(t.payment_method);
                   return (
-                    <li key={t.id} className="rise border-b border-line/70 last:border-0" style={{ "--i": Math.min(row++, 12), "--base": "120ms" } as React.CSSProperties}>
+                    <li key={t.id} className="rise" style={{ "--i": Math.min(row++, 12), "--base": "120ms" } as React.CSSProperties}>
                       <button
                         onClick={() => setEditing(t)}
-                        className="press -mx-2 flex w-[calc(100%+1rem)] items-center gap-3 rounded-xl px-2 py-3 text-left hover:bg-wash"
+                        className="press flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-wash"
                       >
                         <span
                           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"

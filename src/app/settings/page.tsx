@@ -166,9 +166,9 @@ export default async function AutoMomoPage({ searchParams }: { searchParams: Pro
           {!inbox || inbox.length === 0 ? (
             <p className="text-[15px] text-muted">Messages from your phone will show up here.</p>
           ) : (
-            <ul className="divide-y divide-line">
-              {inbox.map((m) => (
-                <li key={m.id} className="fade-in py-3">
+            <ul className="boxed">
+              {inbox.map((m, n) => (
+                <li key={m.id} className="row-in px-4 py-3.5" style={{ ["--i" as string]: Math.min(n, 12) }}>
                   <div className="flex items-center justify-between gap-3">
                     <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ${STATUS_STYLE[m.status]}`}>{m.status}</span>
                     <span className="text-xs text-muted">{timeAgo(m.received_at)}</span>

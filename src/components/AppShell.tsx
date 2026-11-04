@@ -41,7 +41,8 @@ export default async function AppShell({
 }) {
   const atCurrent = month >= currentMonth();
   const access = await getAccess();
-  const SIDEBAR = access.isOwner ? [...NAV, PEOPLE, SECURITY] : [...NAV, SECURITY];
+  // People and Security belong to the owner only; everyone else just sees their own money.
+  const SIDEBAR = access.isOwner ? [...NAV, PEOPLE, SECURITY] : NAV;
 
   const bookSwitch = (
     <div className="grid grid-cols-2 rounded-full bg-wash p-1 text-sm font-semibold">
@@ -137,13 +138,15 @@ export default async function AppShell({
                   )}
                 </Link>
               )}
-              <Link
-                href={link("/security", book.kind, month)}
-                aria-label="Security"
-                className={`press rounded-full p-2 ${path === "/security" ? "bg-cream text-red" : "text-muted hover:bg-wash hover:text-ink"}`}
-              >
-                <ShieldCheck size={20} />
-              </Link>
+              {access.isOwner && (
+                <Link
+                  href={link("/security", book.kind, month)}
+                  aria-label="Security"
+                  className={`press rounded-full p-2 ${path === "/security" ? "bg-cream text-red" : "text-muted hover:bg-wash hover:text-ink"}`}
+                >
+                  <ShieldCheck size={20} />
+                </Link>
+              )}
             </div>
             <div className="hidden lg:block">{monthNav}</div>
           </div>
@@ -162,7 +165,7 @@ export default async function AppShell({
 
         <main className="page-enter mx-auto w-full max-w-5xl flex-1 px-4 py-5 lg:px-8 lg:py-8">{children}</main>
         <div className="pb-[calc(5.5rem+env(safe-area-inset-bottom))] lg:pb-0">
-          <Footer />
+          <Footer owner={access.isOwner} />
         </div>
       </div>
 
