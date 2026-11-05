@@ -12,6 +12,7 @@ import { INTRO_FLAG } from "@/lib/intro";
  */
 const AWAY_MS = 10 * 60_000; // back after 10 minutes away counts as opening the app again
 const SLIDE_MS = 5200;
+const SLIDES_SEEN = "kudi-slides-seen-v1"; // the three slides show once per device; the splash shows every launch
 
 export default function Intro() {
   const [stage, setStage] = useState<"splash" | "slides" | "hidden">("splash");
@@ -23,6 +24,7 @@ export default function Intro() {
   const finish = useCallback(() => {
     try {
       sessionStorage.setItem(INTRO_FLAG, "1");
+      localStorage.setItem(SLIDES_SEEN, "1");
     } catch {
       /* ignore */
     }
@@ -56,7 +58,13 @@ export default function Intro() {
   // Splash, then the slides move on by themselves like a short video.
   useEffect(() => {
     if (stage === "splash") {
-      const t = setTimeout(() => setStage("slides"), 2600);
+      let seen = false;
+      try {
+        seen = localStorage.getItem(SLIDES_SEEN) === "1";
+      } catch {
+        /* ignore */
+      }
+      const t = setTimeout(() => (seen ? finish() : setStage("slides")), seen ? 1800 : 2600);
       return () => clearTimeout(t);
     }
     if (stage === "slides" && !paused) {
