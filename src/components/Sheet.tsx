@@ -2,6 +2,7 @@
 
 import { X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 /**
  * Pop-up over a blurred page. On phones it rises from the bottom and follows the
@@ -46,9 +47,10 @@ export default function Sheet({
     };
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!open || typeof document === "undefined") return null;
 
-  return (
+  // Drawn straight into <body>, so animated sections on the page can never cover it (an iPhone Safari quirk).
+  return createPortal(
     <div
       className="fixed inset-x-0 top-0 z-50 flex h-dvh items-end justify-center sm:items-center sm:p-6"
       style={view ? { top: view.top, height: view.height } : undefined}
@@ -72,5 +74,5 @@ export default function Sheet({
         <div className="min-h-0 flex-1 overscroll-contain overflow-y-auto px-5 pt-4">{children}</div>
       </div>
     </div>
-  );
+  , document.body);
 }
