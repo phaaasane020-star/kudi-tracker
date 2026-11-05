@@ -5,6 +5,7 @@ import { useCallback, useState, useTransition } from "react";
 import { deleteTransaction } from "@/app/actions";
 import RecordForm from "@/components/RecordForm";
 import { categoryIcon } from "@/lib/category-icons";
+import { deleteLater } from "@/lib/outbox";
 import Sheet from "@/components/Sheet";
 import { cedi, dateLabel, paymentLabel } from "@/lib/format";
 import type { Category, Transaction } from "@/lib/types";
@@ -22,6 +23,7 @@ export default function TransactionList({
 }) {
   const [editing, setEditing] = useState<Transaction | null>(null);
   const [deleting, startDelete] = useTransition();
+  const [note, setNote] = useState("");
   const close = useCallback(() => setEditing(null), []);
 
   if (transactions.length === 0) return <div className="py-10 text-center text-[15px] text-muted">{empty}</div>;
@@ -99,6 +101,13 @@ export default function TransactionList({
               disabled={deleting}
               onClick={() => {
                 if (!editing) return;
+                if (!navigator.onLine) {
+                  deleteLater(editing.id);
+                  setNote("Deleted on this phone. It's removed from Kudi when you're back online.");
+                  setTimeout(() => setNote(""), 4000);
+                  close();
+                  return;
+                }
                 const fd = new FormData();
                 fd.set("id", editing.id);
                 startDelete(async () => {
@@ -113,6 +122,11 @@ export default function TransactionList({
           </>
         )}
       </Sheet>
+      {note && (
+        <div className="toast-in fixed inset-x-0 bottom-24 z-50 flex justify-center px-4 lg:bottom-8" role="status">
+          <span className="rounded-full bg-brown px-4 py-2 text-center text-sm font-medium text-cream shadow-lg">{note}</span>
+        </div>
+      )}
     </>
   );
 }

@@ -8,6 +8,7 @@ import { signIn, signInWithGoogle, signUp, type AuthState } from "@/app/auth-act
 import PasswordMeter from "@/components/PasswordMeter";
 import { isStrongPassword } from "@/lib/password";
 import AuthShell from "@/components/AuthShell";
+import { ForgetSavedPages } from "@/components/Offline";
 
 const initial: AuthState = { ok: false, message: "", stamp: 0 };
 
@@ -38,6 +39,7 @@ export default function LoginScreen({ notice }: { notice?: string }) {
 
   return (
     <AuthShell heading="Every cedi, accounted for." text="MoMo payments record themselves from your SMS. Cash takes two taps.">
+      <ForgetSavedPages />
             <div className="rise mb-8 md:hidden">
               <p className="display text-[clamp(2rem,9vw,2.5rem)] font-bold leading-none">Every cedi, accounted for.</p>
               <p className="mt-3 text-[15px] text-muted">MoMo payments record themselves. Cash takes two taps.</p>

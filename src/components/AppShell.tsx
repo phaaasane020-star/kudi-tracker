@@ -2,6 +2,7 @@ import { ChevronLeft, ChevronRight, LayoutDashboard, LogOut, PieChart, ReceiptTe
 import Link from "next/link";
 import { signOut } from "@/app/actions";
 import Footer from "@/components/Footer";
+import { OfflineBar, SaveAllPages } from "@/components/Offline";
 import Tour from "@/components/Tour";
 import AddRecordSheet, { AddButton } from "@/components/AddRecord";
 import { currentMonth, monthLabel, nextMonth, prevMonth } from "@/lib/format";
@@ -176,6 +177,7 @@ export default async function AppShell({
               <h1 className="text-xl font-bold">{title}</h1>
             </div>
           )}
+                  <OfflineBar />
         </header>
 
         <main className="page-enter mx-auto w-full max-w-5xl flex-1 px-4 py-5 lg:px-8 lg:py-8">{children}</main>
@@ -200,6 +202,7 @@ export default async function AppShell({
       </nav>
 
       <AddRecordSheet bookId={book.id} categories={categories} />
+      <SaveAllPages owner={access.isOwner} />
       {path === "/" && <Tour />}
     </div>
   );

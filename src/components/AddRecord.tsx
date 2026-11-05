@@ -51,10 +51,10 @@ export default function AddRecordSheet({ bookId, categories }: { bookId: string;
   }, []);
 
   const close = useCallback(() => setOpen(false), []);
-  const done = useCallback(() => {
+  const done = useCallback((message?: string) => {
     setOpen(false);
-    setSaved("Saved");
-    setTimeout(() => setSaved(""), 2200);
+    setSaved(message ?? "Saved");
+    setTimeout(() => setSaved(""), message ? 4000 : 2200);
   }, []);
 
   return (

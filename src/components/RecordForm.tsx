@@ -4,6 +4,7 @@ import { Banknote, CalendarDays, CreditCard, Landmark, MoreHorizontal, Smartphon
 import { useActionState, useEffect, useRef, useState } from "react";
 import { addTransaction, updateTransaction, type FormState } from "@/app/actions";
 import { categoryIcon } from "@/lib/category-icons";
+import { addToOutbox } from "@/lib/outbox";
 import { PAYMENT_METHODS, today } from "@/lib/format";
 import type { Category, Transaction, TxType } from "@/lib/types";
 
@@ -33,7 +34,7 @@ export default function RecordForm({
   bookId: string;
   categories: Category[];
   existing?: Transaction;
-  onDone?: () => void;
+  onDone?: (message?: string) => void;
 }) {
   const editing = !!existing;
   const [type, setType] = useState<TxType>(existing?.type ?? "expense");
@@ -67,7 +68,17 @@ export default function RecordForm({
   const accent = type === "expense" ? "text-red" : "text-green";
 
   return (
-    <form action={action} className="flex min-h-full flex-col">
+    <form
+      action={action}
+      onSubmit={(e) => {
+        if (navigator.onLine) return;
+        e.preventDefault();
+        if (addToOutbox(new FormData(e.currentTarget), editing ? "update" : "create")) {
+          onDone?.("Saved on this phone. It uploads when you're back online.");
+        }
+      }}
+      className="flex min-h-full flex-col"
+    >
       {existing && <input type="hidden" name="id" value={existing.id} />}
       <input type="hidden" name="type" value={type} />
       <input type="hidden" name="book_id" value={bookId} />
