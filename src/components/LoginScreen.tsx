@@ -48,6 +48,7 @@ export default function LoginScreen({ notice }: { notice?: string }) {
               </div>
             </div>
 
+            <div className="rounded-2xl border border-line bg-white p-5 shadow-[0_1px_2px_rgba(63,41,43,0.04),0_12px_32px_-16px_rgba(63,41,43,0.18)] sm:p-7">
             <div className="rise" style={{ ["--i" as string]: 1 }}>
               <h1 className="text-2xl font-bold">{mode === "signin" ? "Sign in" : "Create your account"}</h1>
               <p className="mt-1 text-[15px] text-muted">
@@ -146,6 +147,7 @@ export default function LoginScreen({ notice }: { notice?: string }) {
                 .
               </p>
             )}
+            </div>
     </AuthShell>
   );
 }

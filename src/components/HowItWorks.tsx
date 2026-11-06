@@ -14,6 +14,8 @@ export default function HowItWorks({ variant }: { variant: "panel" | "strip" }) 
       { n: 3, title: "Budget updates", note: "you see it straight away" },
     ];
     return (
+      <div className="rounded-2xl border border-line bg-white p-3 shadow-[0_1px_2px_rgba(63,41,43,0.04),0_12px_32px_-16px_rgba(63,41,43,0.18)]">
+      <p className="mb-2 px-0.5 text-[13px] font-semibold">How it works</p>
       <ol className="grid grid-cols-3 gap-2" aria-label="How Kudi works">
         {steps.map((s) => (
           <li key={s.n} className="rounded-xl bg-wash px-2.5 py-2">
@@ -23,6 +25,7 @@ export default function HowItWorks({ variant }: { variant: "panel" | "strip" }) 
           </li>
         ))}
       </ol>
+      </div>
     );
   }
 
