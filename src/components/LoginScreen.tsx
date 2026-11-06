@@ -8,6 +8,7 @@ import { signIn, signInWithGoogle, signUp, type AuthState } from "@/app/auth-act
 import PasswordMeter from "@/components/PasswordMeter";
 import { isStrongPassword } from "@/lib/password";
 import AuthShell from "@/components/AuthShell";
+import HowItWorks from "@/components/HowItWorks";
 import { ForgetSavedPages } from "@/components/Offline";
 
 const initial: AuthState = { ok: false, message: "", stamp: 0 };
@@ -38,11 +39,13 @@ export default function LoginScreen({ notice }: { notice?: string }) {
   }, [notice]);
 
   return (
-    <AuthShell heading="Every cedi, accounted for." text="MoMo payments record themselves from your SMS. Cash takes two taps.">
+    <AuthShell heading="Every cedi, accounted for." text="Your MoMo payments record themselves from the SMS you already get." aside={<HowItWorks variant="panel" />}>
       <ForgetSavedPages />
-            <div className="rise mb-8 md:hidden">
-              <p className="display text-[clamp(2rem,9vw,2.5rem)] font-bold leading-none">Every cedi, accounted for.</p>
-              <p className="mt-3 text-[15px] text-muted">MoMo payments record themselves. Cash takes two taps.</p>
+            <div className="rise mb-6 md:hidden">
+              <p className="display text-[clamp(1.6rem,7.5vw,2.1rem)] font-bold leading-[1.05]">Every cedi, accounted for.</p>
+              <div className="mt-4">
+                <HowItWorks variant="strip" />
+              </div>
             </div>
 
             <div className="rise" style={{ ["--i" as string]: 1 }}>
